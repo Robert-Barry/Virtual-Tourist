@@ -9,13 +9,15 @@
 import UIKit
 import MapKit
 
-class MapViewController: UIViewController {
+class MapViewController: UIViewController, MKMapViewDelegate {
 
     @IBOutlet weak var map: MKMapView!
+    var num: Int = 0
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
+        map.delegate = self
     }
 
     override func didReceiveMemoryWarning() {
@@ -23,6 +25,9 @@ class MapViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
 
-
+    func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        print("region changed \(num)")
+        num = num + 1
+    }
 }
 
