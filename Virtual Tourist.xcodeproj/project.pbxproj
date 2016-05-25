@@ -14,6 +14,7 @@
 		315F15831CF5F36700127D54 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 315F15811CF5F36700127D54 /* LaunchScreen.storyboard */; };
 		315F158E1CF5F36700127D54 /* Virtual_TouristTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 315F158D1CF5F36700127D54 /* Virtual_TouristTests.swift */; };
 		315F15991CF5F36700127D54 /* Virtual_TouristUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 315F15981CF5F36700127D54 /* Virtual_TouristUITests.swift */; };
+		315F15A81CF61AC500127D54 /* Defaults.swift in Sources */ = {isa = PBXBuildFile; fileRef = 315F15A71CF61AC500127D54 /* Defaults.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -47,6 +48,7 @@
 		315F15941CF5F36700127D54 /* Virtual TouristUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Virtual TouristUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		315F15981CF5F36700127D54 /* Virtual_TouristUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Virtual_TouristUITests.swift; sourceTree = "<group>"; };
 		315F159A1CF5F36700127D54 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		315F15A71CF61AC500127D54 /* Defaults.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Defaults.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +99,7 @@
 		315F15771CF5F36700127D54 /* Virtual Tourist */ = {
 			isa = PBXGroup;
 			children = (
+				315F15A61CF61AB700127D54 /* Model */,
 				315F15781CF5F36700127D54 /* AppDelegate.swift */,
 				315F157A1CF5F36700127D54 /* MapViewController.swift */,
 				315F157C1CF5F36700127D54 /* Main.storyboard */,
@@ -123,6 +126,14 @@
 				315F159A1CF5F36700127D54 /* Info.plist */,
 			);
 			path = "Virtual TouristUITests";
+			sourceTree = "<group>";
+		};
+		315F15A61CF61AB700127D54 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				315F15A71CF61AC500127D54 /* Defaults.swift */,
+			);
+			name = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -259,6 +270,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				315F15A81CF61AC500127D54 /* Defaults.swift in Sources */,
 				315F157B1CF5F36700127D54 /* MapViewController.swift in Sources */,
 				315F15791CF5F36700127D54 /* AppDelegate.swift in Sources */,
 			);

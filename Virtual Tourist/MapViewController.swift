@@ -12,12 +12,24 @@ import MapKit
 class MapViewController: UIViewController, MKMapViewDelegate {
 
     @IBOutlet weak var map: MKMapView!
-    var num: Int = 0
+    let defaults = NSUserDefaults.standardUserDefaults()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
         map.delegate = self
+
+        if let regionDictionary = NSUserDefaults.standardUserDefaults().dictionaryForKey("region") {
+            print("ON LOAD: \(regionDictionary)")
+            let center = CLLocationCoordinate2D(latitude: regionDictionary["centerLatitude"] as! CLLocationDegrees, longitude: regionDictionary["centerLongitude"] as! CLLocationDegrees)
+            let span = MKCoordinateSpan(latitudeDelta: regionDictionary["latitudeDelta"] as! CLLocationDegrees, longitudeDelta: regionDictionary["longitudeDelta"] as! CLLocationDegrees)   
+            let region = MKCoordinateRegion(center: center, span: span)
+            map.setRegion(region, animated: true)
+        } else {
+            // set the user's location by the phone
+            print("no location")
+        }
+
     }
 
     override func didReceiveMemoryWarning() {
@@ -26,8 +38,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
 
     func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        print("region changed \(num)")
-        num = num + 1
+        
+        let regionDictionary = ["centerLatitude": map.region.center.latitude, "centerLongitude": map.region.center.longitude, "latitudeDelta": map.region.span.latitudeDelta, "longitudeDelta": map.region.span.longitudeDelta]
+        print("BEFORE SAVE: \(regionDictionary)")
+        defaults.setValue(regionDictionary, forKey: "region")
+        
+    
     }
+
 }
 
