@@ -3,6 +3,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+        <capability name="Alignment constraints with different attributes" minToolsVersion="5.1"/>
         <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
@@ -20,6 +21,10 @@
                         <subviews>
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="VMm-nI-jDL">
                                 <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
+                                <gestureRecognizers/>
+                                <connections>
+                                    <outletCollection property="gestureRecognizers" destination="HCj-tQ-3dA" appends="YES" id="j7A-ls-0p3"/>
+                                </connections>
                             </mapView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
@@ -34,10 +39,10 @@
                                 <exclude reference="VMm-nI-jDL"/>
                             </mask>
                             <mask key="constraints">
+                                <exclude reference="1iK-U0-pWA"/>
                                 <exclude reference="BRW-13-ZZQ"/>
                                 <exclude reference="E2s-LB-Jrb"/>
                                 <exclude reference="Vmk-ce-wg7"/>
-                                <exclude reference="1iK-U0-pWA"/>
                             </mask>
                         </variation>
                         <variation key="widthClass=compact">
@@ -45,10 +50,10 @@
                                 <include reference="VMm-nI-jDL"/>
                             </mask>
                             <mask key="constraints">
+                                <include reference="1iK-U0-pWA"/>
                                 <include reference="BRW-13-ZZQ"/>
                                 <include reference="E2s-LB-Jrb"/>
                                 <include reference="Vmk-ce-wg7"/>
-                                <include reference="1iK-U0-pWA"/>
                             </mask>
                         </variation>
                     </view>
@@ -57,6 +62,11 @@
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
+                <pongPressGestureRecognizer allowableMovement="10" minimumPressDuration="0.5" id="HCj-tQ-3dA">
+                    <connections>
+                        <action selector="handleLongPress:" destination="BYZ-38-t0r" id="ke5-6G-0h5"/>
+                    </connections>
+                </pongPressGestureRecognizer>
             </objects>
             <point key="canvasLocation" x="304.5" y="387"/>
         </scene>

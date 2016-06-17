@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <model userDefinedModelVersionIdentifier="" type="com.apple.IDECoreDataModeler.DataModel" documentVersion="1.0" lastSavedToolsVersion="10174" systemVersion="15F34" minimumToolsVersion="Xcode 7.0">
-    <entity name="LocationTracker" syncable="YES">
+    <entity name="LocationTracker" representedClassName=".LocationTracker" syncable="YES">
         <attribute name="centerLatitude" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
         <attribute name="centerLongitude" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
         <attribute name="latitudeDelta" attributeType="Double" defaultValueString="0.0" syncable="YES"/>
