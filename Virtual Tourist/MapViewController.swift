@@ -13,7 +13,7 @@ import CoreData
 class MapViewController: UIViewController, MKMapViewDelegate {
 
 // OUTLETS
-    @IBOutlet weak var map: MKMapView!
+    @IBOutlet weak var editButton: UIBarButtonItem!
     
 // CONSTANTS
     let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
@@ -22,6 +22,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     var stack: CoreDataStack!
     var locationTracker: LocationTracker!
     var isMapData: Bool? // Has the user used the app before?
+    var label: UILabel!
+    var map: MKMapView!
     
     
     
@@ -29,7 +31,27 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        map = MKMapView(frame: CGRectMake(0, 0, view.frame.width, view.frame.height))
+        
         map.delegate = self
+        
+        view.addSubview(map)
+        
+        label = UILabel(frame: CGRectMake(0, 0, view.frame.width, 68))
+        label.center = CGPointMake(view.frame.width - (view.frame.width / 2), view.frame.height - (68 / 2))
+        label.backgroundColor = UIColor.blueColor()
+        label.textColor = UIColor.whiteColor()
+        label.text = "Tap Pins to Delete"
+        label.textAlignment = NSTextAlignment.Center
+        view.addSubview(label)
+        
+        // The following code is from Stack Overflow URL:
+        //http://stackoverflow.com/questions/29241691/how-do-i-use-uilongpressgesturerecognizer-with-a-uicollectionviewcell-in-swift
+        let lpgr = UILongPressGestureRecognizer(target: self, action: #selector(MapViewController.handleLongPress(_:)))
+        lpgr.minimumPressDuration = 0.5
+        lpgr.delaysTouchesBegan = true
+        //lpgr.delegate = self
+        map.addGestureRecognizer(lpgr)
         
         // Core Data Stack
         stack = appDelegate.stack
@@ -59,6 +81,12 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             fatalError("Failed to previous location: \(error)")
         }
 
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        label.center.y = view.frame.height + (68 / 2)
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -99,9 +127,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
     
     @IBAction func handleLongPress(recognizer: UILongPressGestureRecognizer) {
-        //print("Long press")
-        var touchPoint = recognizer.locationInView(map)
-        var newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
+        print("Long press")
+        let touchPoint = recognizer.locationInView(map)
+        let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
         let annotation = MKPointAnnotation()
         annotation.coordinate = newCoordinates
         map.addAnnotation(annotation)
@@ -111,6 +139,21 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         print(annotation)
     }
 
+    @IBAction func editMap(sender: AnyObject) {
+        if editButton.title == "Edit" {
+            editButton.title = "Done"
+            UIView.animateWithDuration(0.25, animations: {
+                self.label.center.y = self.view.frame.height - (68 / 2)
+                self.map.center.y -= 68
+            })
+        } else {
+            editButton.title = "Edit"
+            UIView.animateWithDuration(0.25, animations: {
+                self.label.center.y = self.view.frame.height + (68 / 2)
+                self.map.center.y += 68
+            })
+        }
+    }
     
     
 // DELEGATE MKMapViewDelegate
