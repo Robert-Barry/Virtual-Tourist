@@ -27,11 +27,29 @@
                     </navigationItem>
                     <connections>
                         <outlet property="editButton" destination="PZq-do-40I" id="ZRl-wf-e8C"/>
+                        <segue destination="Q3y-04-Uzw" kind="show" identifier="locationPhotos" id="Cw7-Ho-gdu"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1222" y="387"/>
+        </scene>
+        <!--Location Photos View Controller-->
+        <scene sceneID="D5s-r3-CEw">
+            <objects>
+                <viewController id="Q3y-04-Uzw" customClass="LocationPhotosViewController" customModule="Virtual_Tourist" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="RXN-og-Lqa"/>
+                        <viewControllerLayoutGuide type="bottom" id="Vtc-8k-Bk6"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="RrJ-rq-Chc">
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="exg-yT-xWm" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="2058" y="387"/>
         </scene>
         <!--Navigation Controller-->
         <scene sceneID="uke-m4-Zic">

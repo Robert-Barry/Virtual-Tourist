@@ -152,14 +152,14 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         if editButton.title == "Edit" {
             editButton.title = "Done"
             arePinsEditable = true
-            UIView.animateWithDuration(0.25, animations: {
+            UIView.animateWithDuration(0.15, animations: {
                 self.label.center.y = self.view.frame.height - (68 / 2)
                 self.map.center.y -= 68
             })
         } else {
             editButton.title = "Edit"
             arePinsEditable = false
-            UIView.animateWithDuration(0.25, animations: {
+            UIView.animateWithDuration(0.15, animations: {
                 self.label.center.y = self.view.frame.height + (68 / 2)
                 self.map.center.y += 68
             })
@@ -181,6 +181,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         if arePinsEditable {
             print("Edit pins")
             view.removeFromSuperview()
+        } else {
+            performSegueWithIdentifier("locationPhotos", sender: self)
         }
     }
     

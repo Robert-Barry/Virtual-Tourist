@@ -11,6 +11,7 @@
 		31442FA81D10CB480064DA11 /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31442FA71D10CB480064DA11 /* CoreDataStack.swift */; };
 		31442FAD1D11A49C0064DA11 /* LocationTracker+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31442FAB1D11A49C0064DA11 /* LocationTracker+CoreDataProperties.swift */; };
 		31442FAE1D11A49C0064DA11 /* LocationTracker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31442FAC1D11A49C0064DA11 /* LocationTracker.swift */; };
+		31442FEE1D1C29FA0064DA11 /* LocationPhotosViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31442FED1D1C29FA0064DA11 /* LocationPhotosViewController.swift */; };
 		315F15791CF5F36700127D54 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 315F15781CF5F36700127D54 /* AppDelegate.swift */; };
 		315F157B1CF5F36700127D54 /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 315F157A1CF5F36700127D54 /* MapViewController.swift */; };
 		315F157E1CF5F36700127D54 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 315F157C1CF5F36700127D54 /* Main.storyboard */; };
@@ -43,6 +44,7 @@
 		31442FA71D10CB480064DA11 /* CoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 		31442FAB1D11A49C0064DA11 /* LocationTracker+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "LocationTracker+CoreDataProperties.swift"; path = "../LocationTracker+CoreDataProperties.swift"; sourceTree = "<group>"; };
 		31442FAC1D11A49C0064DA11 /* LocationTracker.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = LocationTracker.swift; path = ../LocationTracker.swift; sourceTree = "<group>"; };
+		31442FED1D1C29FA0064DA11 /* LocationPhotosViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = LocationPhotosViewController.swift; sourceTree = "<group>"; };
 		315F15751CF5F36700127D54 /* Virtual Tourist.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Virtual Tourist.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		315F15781CF5F36700127D54 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		315F157A1CF5F36700127D54 /* MapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
@@ -114,6 +116,7 @@
 				315F157F1CF5F36700127D54 /* Assets.xcassets */,
 				315F15811CF5F36700127D54 /* LaunchScreen.storyboard */,
 				315F15841CF5F36700127D54 /* Info.plist */,
+				31442FED1D1C29FA0064DA11 /* LocationPhotosViewController.swift */,
 			);
 			path = "Virtual Tourist";
 			sourceTree = "<group>";
@@ -284,6 +287,7 @@
 			files = (
 				31442FA81D10CB480064DA11 /* CoreDataStack.swift in Sources */,
 				315F15A81CF61AC500127D54 /* Defaults.swift in Sources */,
+				31442FEE1D1C29FA0064DA11 /* LocationPhotosViewController.swift in Sources */,
 				31442FAE1D11A49C0064DA11 /* LocationTracker.swift in Sources */,
 				315F157B1CF5F36700127D54 /* MapViewController.swift in Sources */,
 				315F15791CF5F36700127D54 /* AppDelegate.swift in Sources */,
