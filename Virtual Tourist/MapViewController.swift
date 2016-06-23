@@ -22,6 +22,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     var stack: CoreDataStack!
     var locationTracker: LocationTracker!
     var isMapData: Bool? // Has the user used the app before?
+    var arePinsEditable = false
     var label: UILabel!
     var map: MKMapView!
     
@@ -126,28 +127,38 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         map.setRegion(region, animated: false )
     }
     
-    @IBAction func handleLongPress(recognizer: UILongPressGestureRecognizer) {
-        print("Long press")
-        let touchPoint = recognizer.locationInView(map)
-        let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
-        let annotation = MKPointAnnotation()
-        annotation.coordinate = newCoordinates
-        map.addAnnotation(annotation)
-        if recognizer.state == .Ended {
-            return
+    func handleLongPress(recognizer: UILongPressGestureRecognizer) {
+        if arePinsEditable == false {
+        
+            if recognizer.state == .Began {
+                print("Long press began")
+            }
+        
+            if recognizer.state == .Ended {
+                let touchPoint = recognizer.locationInView(map)
+                let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
+                let annotation = MKPointAnnotation()
+                annotation.coordinate = newCoordinates
+                map.addAnnotation(annotation)
+                print("Long press ended")
+                return
+            }
         }
-        print(annotation)
+        
+        //print(annotation)
     }
 
     @IBAction func editMap(sender: AnyObject) {
         if editButton.title == "Edit" {
             editButton.title = "Done"
+            arePinsEditable = true
             UIView.animateWithDuration(0.25, animations: {
                 self.label.center.y = self.view.frame.height - (68 / 2)
                 self.map.center.y -= 68
             })
         } else {
             editButton.title = "Edit"
+            arePinsEditable = false
             UIView.animateWithDuration(0.25, animations: {
                 self.label.center.y = self.view.frame.height + (68 / 2)
                 self.map.center.y += 68
@@ -164,6 +175,19 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             locationTracker.trackLocation(map.region.center.latitude, map.region.center.longitude, map.region.span.latitudeDelta, map.region.span.longitudeDelta)
         }
 
+    }
+    
+    func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
+        if arePinsEditable {
+            print("Edit pins")
+            view.removeFromSuperview()
+        }
+    }
+    
+    func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
+        let annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: "pin")
+        annotationView.animatesDrop = true
+        return annotationView
     }
 
 }
