@@ -3,6 +3,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+        <capability name="Constraints to layout margins" minToolsVersion="6.0"/>
     </dependencies>
     <scenes>
         <!--Virtual Tourist-->
@@ -44,7 +45,50 @@
                     </layoutGuides>
                     <view key="view" contentMode="scaleToFill" id="RrJ-rq-Chc">
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="bW7-gP-VK7">
+                                <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
+                                <items>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="g06-4B-cfb"/>
+                                    <barButtonItem title="New Collection" id="0DJ-Ig-cpP"/>
+                                    <barButtonItem style="plain" systemItem="flexibleSpace" id="qxZ-zc-1Zx"/>
+                                </items>
+                            </toolbar>
+                            <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="eYn-80-0od">
+                                <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
+                                <variation key="widthClass=compact" fixedFrame="YES">
+                                    <rect key="frame" x="0.0" y="64" width="400" height="128"/>
+                                </variation>
+                            </mapView>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="Vtc-8k-Bk6" firstAttribute="top" secondItem="bW7-gP-VK7" secondAttribute="bottom" id="3tv-YZ-s3D"/>
+                            <constraint firstItem="bW7-gP-VK7" firstAttribute="leading" secondItem="RrJ-rq-Chc" secondAttribute="leadingMargin" constant="-20" id="Ojr-Pu-jXd"/>
+                            <constraint firstAttribute="trailingMargin" secondItem="bW7-gP-VK7" secondAttribute="trailing" constant="-20" id="gvz-Xl-UsR"/>
+                        </constraints>
+                        <variation key="default">
+                            <mask key="subviews">
+                                <exclude reference="bW7-gP-VK7"/>
+                                <exclude reference="eYn-80-0od"/>
+                            </mask>
+                            <mask key="constraints">
+                                <exclude reference="Ojr-Pu-jXd"/>
+                                <exclude reference="gvz-Xl-UsR"/>
+                                <exclude reference="3tv-YZ-s3D"/>
+                            </mask>
+                        </variation>
+                        <variation key="widthClass=compact">
+                            <mask key="subviews">
+                                <include reference="bW7-gP-VK7"/>
+                                <include reference="eYn-80-0od"/>
+                            </mask>
+                            <mask key="constraints">
+                                <include reference="Ojr-Pu-jXd"/>
+                                <include reference="gvz-Xl-UsR"/>
+                                <include reference="3tv-YZ-s3D"/>
+                            </mask>
+                        </variation>
                     </view>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="exg-yT-xWm" userLabel="First Responder" sceneMemberID="firstResponder"/>
