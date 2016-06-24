@@ -25,6 +25,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     var arePinsEditable = false
     var label: UILabel!
     var map: MKMapView!
+    var selectedAnnotation: MKAnnotation?
     
     
     
@@ -97,6 +98,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 setMapLocation()
             }
         }
+    }
+    
+    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        let controller = segue.destinationViewController as! LocationPhotosViewController
+        
+        controller.latitude = selectedAnnotation?.coordinate.latitude
+        controller.longitude = selectedAnnotation?.coordinate.longitude
     }
     
     // The function mapViewRegionDidChangeFromUserInteraction() comes from this Stack Overflow URL:
@@ -182,6 +190,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             print("Edit pins")
             view.removeFromSuperview()
         } else {
+            selectedAnnotation = view.annotation
             performSegueWithIdentifier("locationPhotos", sender: self)
         }
     }

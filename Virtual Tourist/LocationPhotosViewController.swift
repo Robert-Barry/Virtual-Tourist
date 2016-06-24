@@ -7,13 +7,42 @@
 //
 
 import UIKit
+import MapKit
 
 class LocationPhotosViewController: UIViewController {
+    
+    @IBOutlet weak var map: MKMapView!
+    
+    let BASE_URL = "https://api.flickr.com/services/rest/"
+    let METHOD_NAME = "flickr.photos.search"
+    let API_KEY = "87dd9e70930748bb40e780e47c10a40f"
+    let SAFE_SEARCH = "1"
+    let EXTRAS = "url_m"
+    let DATA_FORMAT = "json"
+    let NO_JSON_CALLBACK = "1"
+    
+    var latitude: Double?
+    var longitude: Double?
 
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        // Do any additional setup after loading the view.
+        // Do any additional setup after loading the view
+        
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        
+        let center = CLLocationCoordinate2D(latitude: latitude!, longitude: longitude!)
+        let span = MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
+        let region = MKCoordinateRegionMake(center, span)
+        
+        map.setRegion(region, animated: false)
+        
+        let coordinate = CLLocationCoordinate2D(latitude: latitude!, longitude: longitude!)
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coordinate
+        map.addAnnotation(annotation)
     }
 
     override func didReceiveMemoryWarning() {
@@ -21,6 +50,19 @@ class LocationPhotosViewController: UIViewController {
         // Dispose of any resources that can be recreated.
     }
     
+    /*
+    func getImagesByLocation() {
+        let methodArguments = [
+            "method": METHOD_NAME,
+            "api_key": API_KEY,
+            "safe_search": SAFE_SEARCH,
+            "extras": EXTRAS,
+            "format": DATA_FORMAT,
+            "nojsoncallback": NO_JSON_CALLBACK,
+            "lat": latitude,
+            "lon": longitude
+        ]
+    }*/
 
     /*
     // MARK: - Navigation
