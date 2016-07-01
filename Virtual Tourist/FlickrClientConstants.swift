@@ -16,6 +16,11 @@ extension FlickrClient {
         static let path = "/services/rest/"
         static let https = "https"
         
+        static let searchBboxHalfWidth = 1.0
+        static let searchBboxHalfHeight = 1.0
+        static let searchLatRange = (-90.0, 90.0)
+        static let searchLonRange = (-180.0, 180.0)
+        
         // MARK: Flickr Parameter Keys
         struct FlickrParameterKeys {
             static let method = "method"
@@ -25,6 +30,8 @@ extension FlickrClient {
             static let extras = "extras"
             static let format = "format"
             static let nojsoncallback = "nojsoncallback"
+            static let bbox = "bbox"
+            static let per_page = "per_page"
         }
         
         // MARK: Flickr Parameter Values
@@ -34,6 +41,8 @@ extension FlickrClient {
             static let extras = "url_m"
             static let format = "json"
             static let nojsoncallback = "1"
+            static let per_page = "21"
+            
         }
     }
 }

@@ -33,9 +33,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        let client = FlickrClient()
-        client.getRequest()
-        
         map = MKMapView(frame: CGRectMake(0, 0, view.frame.width, view.frame.height))
         
         map.delegate = self

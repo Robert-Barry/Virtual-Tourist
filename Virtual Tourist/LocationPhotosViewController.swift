@@ -43,26 +43,16 @@ class LocationPhotosViewController: UIViewController {
         let annotation = MKPointAnnotation()
         annotation.coordinate = coordinate
         map.addAnnotation(annotation)
+        
+        let client = FlickrClient()
+        client.getRequest()
+        
     }
 
     override func didReceiveMemoryWarning() {
         super.didReceiveMemoryWarning()
         // Dispose of any resources that can be recreated.
     }
-    
-    /*
-    func getImagesByLocation() {
-        let methodArguments = [
-            "method": METHOD_NAME,
-            "api_key": API_KEY,
-            "safe_search": SAFE_SEARCH,
-            "extras": EXTRAS,
-            "format": DATA_FORMAT,
-            "nojsoncallback": NO_JSON_CALLBACK,
-            "lat": latitude,
-            "lon": longitude
-        ]
-    }*/
 
     /*
     // MARK: - Navigation

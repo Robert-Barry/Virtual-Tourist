@@ -21,10 +21,12 @@ class FlickrClient {
             NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.method, value: FlickrClient.Contstants.FlickrParameterValues.method),
             NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.api_key, value: FlickrClient.Contstants.FlickrParameterValues.api_key),
             NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.lat, value: "40.4406"),
-            NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.lon, value: "79.9959"),
+            NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.lon, value: "-79.9959"),
             NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.extras, value: FlickrClient.Contstants.FlickrParameterValues.extras),
             NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.format, value: FlickrClient.Contstants.FlickrParameterValues.format),
-            NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.nojsoncallback, value: FlickrClient.Contstants.FlickrParameterValues.nojsoncallback)
+            NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.nojsoncallback, value: FlickrClient.Contstants.FlickrParameterValues.nojsoncallback),
+            NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.bbox, value: bboxString()),
+            NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.per_page, value: FlickrClient.Contstants.FlickrParameterValues.per_page)
         ]
         
         print(urlComponents.URL!)
@@ -33,26 +35,71 @@ class FlickrClient {
         
     }
     
+    private func bboxString() -> String {
+        let latitude = 40.4406
+        let longitude = -79.9959
+        
+        let minimumLon = max(longitude - FlickrClient.Contstants.searchBboxHalfWidth, FlickrClient.Contstants.searchLonRange.0)
+        let minimumLat = max(latitude - FlickrClient.Contstants.searchBboxHalfHeight, FlickrClient.Contstants.searchLatRange.0)
+        let maximumLon = min(longitude + FlickrClient.Contstants.searchBboxHalfWidth, FlickrClient.Contstants.searchLonRange.1)
+        let maximumLat = min(latitude + FlickrClient.Contstants.searchBboxHalfHeight, FlickrClient.Contstants.searchLatRange.1)
+        
+        return "\(minimumLon),\(minimumLat),\(maximumLon),\(maximumLat)"
+    }
+    
     func getRequest() {
-        let request = NSURLRequest(URL: createNSURL())
+        let url = createNSURL()
+        let request = NSURLRequest(URL: url)
         
         let task = NSURLSession.sharedSession().dataTaskWithRequest(request) { data, response, error in
             
-            if error == nil {
-                let parsedResult: AnyObject!
-                if let data = data {
-                    do {
-                        parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
-                    } catch {
-                        print("Could not parse the data as json: \(data)")
-                        return
-                    }
-                    
-                    if let photosDictionary = parsedResult["photos"] as? [String: AnyObject] {
-                        print(photosDictionary)
-                    }
-                }
+            func displayError(error: String) {
+                print(error)
+                print("URL at time of error: \(url)")
             }
+            
+            // GUARD: Was there an error?
+            guard (error == nil) else {
+                displayError("There was an error with your request: \(error)")
+                return
+            }
+            
+            // GUARD: Did we get a successful 2XX response?
+            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
+                displayError("Your request returned a status code other than 2XX!")
+                return
+            }
+            
+            // GUARD: Was there data returned?
+            guard let data = data else {
+                displayError("No data was returned by the request!")
+                return
+            }
+            
+            // parse the data
+            let parsedResult: AnyObject!
+            do {
+                parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
+                print(parsedResult)
+            } catch {
+                print("Could not parse the data as json: \(data)")
+                return
+            }
+            
+            // GUARD: Did Flickr return an error (stat != ok)?
+            guard let stat = parsedResult["stat"] as? String where stat == "ok" else {
+                displayError("Flickr API returned an error. See error code and message in \(parsedResult)")
+                return
+            }
+            
+            // GUARD: Are the "photos" and "photo" keys in our result?
+            guard let photosDictionary = parsedResult["photos"] as? [String:AnyObject], photoArray = photosDictionary["photo"] as? [[String:AnyObject]] else {
+                displayError("Cannot find keys 'photos' and 'photo' in \(parsedResult)")
+                return
+            }
+            
+            //print(photoArray)
+            
         }
         task.resume()
     }
