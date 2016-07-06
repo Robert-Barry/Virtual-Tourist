@@ -9,11 +9,12 @@
 import UIKit
 import MapKit
 
-class LocationPhotosViewController: UIViewController {
+class LocationPhotosViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     
     @IBOutlet weak var map: MKMapView!
     
     var images: [UIImage]!
+    @IBOutlet weak var collectionView: UICollectionView!
     
     let BASE_URL = "https://api.flickr.com/services/rest/"
     let METHOD_NAME = "flickr.photos.search"
@@ -50,12 +51,36 @@ class LocationPhotosViewController: UIViewController {
         
         FlickrClient.sharedInstance().getImages(location) { success, error in
             if success {
-                print("SUCCESS")
+                self.performUIUpdatesOnMain {
+                    print("SUCCESS")
+                    self.collectionView.reloadData()
+                }
+                
             } else {
                 print("error")
             }
         }
     
+    }
+    
+    func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        print(FlickrClient.sharedInstance().URLList.count)
+        return FlickrClient.sharedInstance().URLList.count
+    }
+    
+    func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+        let cell = collectionView.dequeueReusableCellWithReuseIdentifier("FlickrCell", forIndexPath: indexPath) as! LocationImageViewCell
+        
+        let data = NSData(contentsOfURL: FlickrClient.sharedInstance().URLList[indexPath.row])
+        cell.imageViewCell.image = UIImage(data: data!)
+        
+        return cell
+    }
+    
+    func performUIUpdatesOnMain(updates: () -> Void) {
+        dispatch_async(dispatch_get_main_queue()) {
+            updates()
+        }
     }
 
     /*

@@ -17,16 +17,10 @@ extension FlickrClient {
             
             if success {
                 
-                self.getListOfURLs(imageList)
+                self.URLList = self.getListOfURLs(imageList)
+                print("Request complete")
+                completionHandlerForRequest(success: true, errorString: nil)
                 
-                self.getListOfImages(imageList) { (succes, images, errorString) in
-                    
-                    if success {
-                        
-                    } else {
-                        completionHandlerForRequest(success: false, errorString: "Could not retrieve images")
-                    }
-                }
             } else {
                 completionHandlerForRequest(success: false, errorString: "Could not retrieve the image URLs")
             }
@@ -50,10 +44,6 @@ extension FlickrClient {
         taskForGETMethod(parameters) { results, error in
             completionHandlerForImageList(success: true, imageList: results, errorString: nil)
         }
-    }
-    
-    func getListOfImages(imageList: AnyObject, completeionHandlerForImages: (success: Bool, images: [UIImage], errorString: String?) -> Void) {
-    
     }
     
     private func bboxString() -> String {
@@ -89,10 +79,7 @@ extension FlickrClient {
         } else {
             print("Cannot convert JSON: \(data)")
         }
-        
-        for url in URLList {
-            print(url)
-        }
+
         return URLList
     }
     

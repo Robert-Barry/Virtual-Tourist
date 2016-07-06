@@ -10,6 +10,9 @@ import Foundation
 
 class FlickrClient {
     
+    // variables
+    var URLList = [NSURL]()
+    
     // shared session
     var session = NSURLSession.sharedSession()
     

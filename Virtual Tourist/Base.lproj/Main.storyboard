@@ -106,6 +106,10 @@
                                 <variation key="widthClass=compact" fixedFrame="YES">
                                     <rect key="frame" x="0.0" y="192" width="400" height="364"/>
                                 </variation>
+                                <connections>
+                                    <outlet property="dataSource" destination="Q3y-04-Uzw" id="bmC-e6-5Pg"/>
+                                    <outlet property="delegate" destination="Q3y-04-Uzw" id="AkU-L3-PxA"/>
+                                </connections>
                             </collectionView>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -140,6 +144,7 @@
                         </variation>
                     </view>
                     <connections>
+                        <outlet property="collectionView" destination="Fr6-OC-7K3" id="sjk-nW-MOo"/>
                         <outlet property="map" destination="eYn-80-0od" id="ipu-sL-xQJ"/>
                     </connections>
                 </viewController>
