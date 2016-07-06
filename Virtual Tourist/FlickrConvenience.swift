@@ -14,12 +14,12 @@ class FlickrClient {
     var session = NSURLSession.sharedSession()
     
     // MARK: Reusable Get function
-    func taskForGETMethod(method: String, parameters: [String: AnyObject], completionHandlerForGET: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    func taskForGETMethod(parameters: [String: AnyObject], completionHandlerForGET: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
         
         print("Task for GET method called")
         
         // Build the request
-        let request = buildRequest(method: method, parameters: parameters)
+        let request = buildRequest(parameters: parameters)
         
         // Build the task
         let task = buildTask(request: request, completionHandler: completionHandlerForGET)
@@ -32,14 +32,14 @@ class FlickrClient {
     
     // MARK: Helper functions
     
-    func buildRequest(method method: String, parameters: [String:AnyObject]) -> NSMutableURLRequest {
+    func buildRequest(parameters parameters: [String:AnyObject]) -> NSMutableURLRequest {
         
         print("Building the request...")
         
         // Create a request
         var request: NSMutableURLRequest
 
-        request = NSMutableURLRequest(URL: URLFromParameters(FlickrClient.Contstants.https, apiHost: FlickrClient.Contstants.host, apiPath: FlickrClient.Contstants.path, parameters: parameters, withPathExtension: method))
+        request = NSMutableURLRequest(URL: URLFromParameters(FlickrClient.Contstants.https, apiHost: FlickrClient.Contstants.host, apiPath: FlickrClient.Contstants.path, parameters: parameters, withPathExtension: ""))
         
         return request
         
@@ -53,11 +53,10 @@ class FlickrClient {
         let task = session.dataTaskWithRequest(request) { (data, response, error) in
             
             func sendError(error: String) {
-                let userInfo = [NSLocalizedDescriptionKey: error]
-                completionHandler(result: nil, error: NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
+                print(error)
             }
             
-            // Guard statementsto check check that the data is valid
+            // Guard statements to check check that the data is valid
             
             // GUARD: Was there an error?
             guard (error == nil) else {
@@ -76,7 +75,6 @@ class FlickrClient {
                 sendError("No data was returned by the request!")
                 return
             }
-            
             // Convert the data to json
             self.convertDataWithCompletionHandler(data: data, completionHandlerForConvertData: completionHandler)
         }
@@ -114,6 +112,8 @@ class FlickrClient {
             let userInfo = [NSLocalizedDescriptionKey : "Could not parse the data as JSON: '\(data)'"]
             completionHandlerForConvertData(result: nil, error: NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
         }
+        
+        print(parsedResult)
         
         completionHandlerForConvertData(result: parsedResult, error: nil)
     }

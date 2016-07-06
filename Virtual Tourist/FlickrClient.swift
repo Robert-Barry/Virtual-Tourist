@@ -11,9 +11,9 @@ import UIKit
 
 extension FlickrClient {
     
-    func getImages(urlDictionary: [String:String], completionHandlerForRequest: (success: Bool, errorString: String?) -> Void) {
+    func getImages(location: [String:Double], completionHandlerForRequest: (success: Bool, errorString: String?) -> Void) {
         
-        getListOfImageURLs(urlDictionary) { (success, imageList, errorString) in
+        getListOfImageURLs(location) { (success, imageList, errorString) in
             
             if success {
                 self.getListOfImages(imageList) { (succes, images, errorString) in
@@ -30,8 +30,23 @@ extension FlickrClient {
         }
     }
     
-    func getListOfImageURLs(urlDictionary: [String:String], completionHandlerForImageList: (success: Bool, imageList: [NSURL], errorString: String?) -> Void) {
+    func getListOfImageURLs(location: [String:Double], completionHandlerForImageList: (success: Bool, imageList: [NSURL], errorString: String?) -> Void) {
         
+        let parameters = [
+            FlickrClient.Contstants.FlickrParameterKeys.method: FlickrClient.Contstants.FlickrParameterValues.method,
+            FlickrClient.Contstants.FlickrParameterKeys.api_key: FlickrClient.Contstants.FlickrParameterValues.api_key,
+            FlickrClient.Contstants.FlickrParameterKeys.lat: String(location["lat"]!),
+            FlickrClient.Contstants.FlickrParameterKeys.lon: String(location["lon"]!),
+            FlickrClient.Contstants.FlickrParameterKeys.extras: FlickrClient.Contstants.FlickrParameterValues.extras,
+            FlickrClient.Contstants.FlickrParameterKeys.format: FlickrClient.Contstants.FlickrParameterValues.format,
+            FlickrClient.Contstants.FlickrParameterKeys.nojsoncallback: FlickrClient.Contstants.FlickrParameterValues.nojsoncallback,
+            FlickrClient.Contstants.FlickrParameterKeys.bbox: bboxString(),
+            FlickrClient.Contstants.FlickrParameterKeys.per_page:FlickrClient.Contstants.FlickrParameterValues.per_page
+        ]
+        
+        taskForGETMethod(parameters) { results, error in
+            
+        }
     }
     
     func getListOfImages(imageList: [NSURL], completeionHandlerForImages: (success: Bool, images: [UIImage], errorString: String?) -> Void) {
@@ -129,16 +144,11 @@ extension FlickrClient {
                 newPhotosArray.append(item["url_m"] as! String)
             }
             
-            print(newPhotosArray)
-            self.locationImages = newPhotosArray
-            
-            print(self.locationImages)
-            
         }
         task.resume()
     }
     
-    func getImage(imageUrl: String) -> NSData {
+    func getImage(imageUrl: String) {
         let url = NSURL(fileURLWithPath: imageUrl)
         let request = NSURLRequest(URL: url)
         

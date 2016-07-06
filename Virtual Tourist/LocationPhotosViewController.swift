@@ -49,7 +49,15 @@ class LocationPhotosViewController: UIViewController {
         let client = FlickrClient.sharedInstance()
         client.getRequest()
         
-        FlickrClient.sharedInstance().getImages()
+        let location = ["lat": 40.4406, "lon": 79.9959]
+        
+        FlickrClient.sharedInstance().getImages(location) { success, error in
+            if success {
+                print("SUCCESS")
+            } else {
+                print("error")
+            }
+        }
     
     }
 
