@@ -8,7 +8,7 @@
 
 import Foundation
 
-class FlickrClient {
+extension FlickrClient {
     
     func createNSURL() -> NSURL {
         let urlComponents = NSURLComponents()
@@ -28,8 +28,6 @@ class FlickrClient {
             NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.bbox, value: bboxString()),
             NSURLQueryItem(name: FlickrClient.Contstants.FlickrParameterKeys.per_page, value: FlickrClient.Contstants.FlickrParameterValues.per_page)
         ]
-        
-        print(urlComponents.URL!)
         
         return urlComponents.URL!
         
@@ -80,7 +78,6 @@ class FlickrClient {
             let parsedResult: AnyObject!
             do {
                 parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
-                print(parsedResult)
             } catch {
                 print("Could not parse the data as json: \(data)")
                 return
@@ -98,9 +95,60 @@ class FlickrClient {
                 return
             }
             
-            //print(photoArray)
+            var newPhotosArray: [String] = []
+            
+            for item in photoArray {
+                newPhotosArray.append(item["url_m"] as! String)
+            }
+            
+            print(newPhotosArray)
+            self.locationImages = newPhotosArray
+            
+            print(self.locationImages)
             
         }
         task.resume()
+    }
+    
+    func getImage(imageUrl: String) -> NSData {
+        let url = NSURL(fileURLWithPath: imageUrl)
+        let request = NSURLRequest(URL: url)
+        
+        let task = NSURLSession.sharedSession().dataTaskWithRequest(request) { data, response, error in
+            
+            func displayError(error: String) {
+                print(error)
+                print("URL at time of error: \(url)")
+            }
+            
+            // GUARD: Was there an error?
+            guard (error == nil) else {
+                displayError("There was an error with your request: \(error)")
+                return
+            }
+            
+            // GUARD: Did we get a successful 2XX response?
+            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
+                displayError("Your request returned a status code other than 2XX!")
+                return
+            }
+            
+            // GUARD: Was there data returned?
+            guard let data = data else {
+                displayError("No data was returned by the request!")
+                return
+            }
+
+        }
+        
+        task.resume()
+    }
+    
+    // Create a singleton
+    class func sharedInstance() -> FlickrClient {
+        struct Singleton {
+            static var sharedInstance = FlickrClient()
+        }
+        return Singleton.sharedInstance
     }
 }

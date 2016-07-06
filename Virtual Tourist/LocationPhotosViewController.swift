@@ -13,6 +13,8 @@ class LocationPhotosViewController: UIViewController {
     
     @IBOutlet weak var map: MKMapView!
     
+    var images: [UIImage]!
+    
     let BASE_URL = "https://api.flickr.com/services/rest/"
     let METHOD_NAME = "flickr.photos.search"
     let API_KEY = "87dd9e70930748bb40e780e47c10a40f"
@@ -43,15 +45,11 @@ class LocationPhotosViewController: UIViewController {
         let annotation = MKPointAnnotation()
         annotation.coordinate = coordinate
         map.addAnnotation(annotation)
-        
-        let client = FlickrClient()
+    
+        let client = FlickrClient.sharedInstance()
         client.getRequest()
         
-    }
-
-    override func didReceiveMemoryWarning() {
-        super.didReceiveMemoryWarning()
-        // Dispose of any resources that can be recreated.
+        
     }
 
     /*
