@@ -49,7 +49,8 @@ class LocationPhotosViewController: UIViewController {
         let client = FlickrClient.sharedInstance()
         client.getRequest()
         
-        
+        FlickrClient.sharedInstance().getImages()
+    
     }
 
     /*

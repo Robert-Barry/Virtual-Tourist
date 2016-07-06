@@ -39,7 +39,6 @@ class FlickrClient {
         // Create a request
         var request: NSMutableURLRequest
 
-            
         request = NSMutableURLRequest(URL: URLFromParameters(FlickrClient.Contstants.https, apiHost: FlickrClient.Contstants.host, apiPath: FlickrClient.Contstants.path, parameters: parameters, withPathExtension: method))
         
         return request

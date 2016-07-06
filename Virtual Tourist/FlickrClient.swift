@@ -7,8 +7,36 @@
 //
 
 import Foundation
+import UIKit
 
 extension FlickrClient {
+    
+    func getImages(urlDictionary: [String:String], completionHandlerForRequest: (success: Bool, errorString: String?) -> Void) {
+        
+        getListOfImageURLs(urlDictionary) { (success, imageList, errorString) in
+            
+            if success {
+                self.getListOfImages(imageList) { (succes, images, errorString) in
+                    
+                    if success {
+                        
+                    } else {
+                        completionHandlerForRequest(success: false, errorString: "Could not retrieve images")
+                    }
+                }
+            } else {
+                completionHandlerForRequest(success: false, errorString: "Could not retrieve the image URLs")
+            }
+        }
+    }
+    
+    func getListOfImageURLs(urlDictionary: [String:String], completionHandlerForImageList: (success: Bool, imageList: [NSURL], errorString: String?) -> Void) {
+        
+    }
+    
+    func getListOfImages(imageList: [NSURL], completeionHandlerForImages: (success: Bool, images: [UIImage], errorString: String?) -> Void) {
+    
+    }
     
     func createNSURL() -> NSURL {
         let urlComponents = NSURLComponents()
