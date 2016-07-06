@@ -45,9 +45,6 @@ class LocationPhotosViewController: UIViewController {
         let annotation = MKPointAnnotation()
         annotation.coordinate = coordinate
         map.addAnnotation(annotation)
-    
-        let client = FlickrClient.sharedInstance()
-        client.getRequest()
         
         let location = ["lat": 40.4406, "lon": 79.9959]
         

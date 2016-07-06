@@ -113,8 +113,6 @@ class FlickrClient {
             completionHandlerForConvertData(result: nil, error: NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
         }
         
-        print(parsedResult)
-        
         completionHandlerForConvertData(result: parsedResult, error: nil)
     }
 }
