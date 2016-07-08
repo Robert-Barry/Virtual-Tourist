@@ -13,23 +13,55 @@ extension FlickrClient {
     
     func getImages(location: [String:Double], completionHandlerForRequest: (success: Bool, errorString: String?) -> Void) {
         
-        getListOfImageURLs(location) { (success, imageList, errorString) in
+        
+        getRandomPageNumber(location) { success, data, errorString in
             
-            if success {
+            print("Random Page Number")
+            let numberOfPages = self.getNumberOfPages(data)
+            
+            // Pick a random page
+            let pageLimit = min(numberOfPages, 4000 / Int(FlickrClient.Contstants.FlickrParameterValues.per_page)!)
+            let randomPage = String(Int(arc4random_uniform(UInt32(pageLimit))) + 1)
+            print(randomPage)
+            
+            self.getListOfImageURLs(location, randomPage: randomPage) { (success, imageList, errorString) in
                 
-                self.URLList = self.getListOfURLs(imageList)
-                print("Request complete")
-                completionHandlerForRequest(success: true, errorString: nil)
-                
-            } else {
-                completionHandlerForRequest(success: false, errorString: "Could not retrieve the image URLs")
+                if success {
+                    
+                    self.URLList = self.getListOfURLs(imageList)
+                    print("Request complete")
+                    completionHandlerForRequest(success: true, errorString: nil)
+                    
+                } else {
+                    completionHandlerForRequest(success: false, errorString: "Could not retrieve the image URLs")
+                }
             }
+        }
+        
+        
+    }
+    
+    func getRandomPageNumber(location: [String:Double], completeionHandlerForPageNumber: (success: Bool, data: AnyObject, errorString: String?) -> Void) {
+        
+        let parameters = getParameters(location)
+        
+        taskForGETMethod(parameters) { results, error in
+            completeionHandlerForPageNumber(success: true, data: results, errorString: nil)
         }
     }
     
-    func getListOfImageURLs(location: [String:Double], completionHandlerForImageList: (success: Bool, imageList: AnyObject, errorString: String?) -> Void) {
+    func getListOfImageURLs(location: [String:Double], randomPage: String, completionHandlerForImageList: (success: Bool, imageList: AnyObject, errorString: String?) -> Void) {
         
-        let parameters = [
+        var parameters = getParameters(location)
+        parameters["page"] = randomPage
+        
+        taskForGETMethod(parameters) { results, error in
+            completionHandlerForImageList(success: true, imageList: results, errorString: nil)
+        }
+    }
+    
+    private func getParameters(location: [String:Double]) -> [String: String] {
+        return [
             FlickrClient.Contstants.FlickrParameterKeys.method: FlickrClient.Contstants.FlickrParameterValues.method,
             FlickrClient.Contstants.FlickrParameterKeys.api_key: FlickrClient.Contstants.FlickrParameterValues.api_key,
             FlickrClient.Contstants.FlickrParameterKeys.lat: String(location["lat"]!),
@@ -40,10 +72,6 @@ extension FlickrClient {
             FlickrClient.Contstants.FlickrParameterKeys.bbox: bboxString(),
             FlickrClient.Contstants.FlickrParameterKeys.per_page:FlickrClient.Contstants.FlickrParameterValues.per_page
         ]
-        
-        taskForGETMethod(parameters) { results, error in
-            completionHandlerForImageList(success: true, imageList: results, errorString: nil)
-        }
     }
     
     private func bboxString() -> String {
@@ -81,6 +109,16 @@ extension FlickrClient {
         }
 
         return URLList
+    }
+    
+    private func getNumberOfPages(json: AnyObject) -> Int {
+        
+        if let photos = json["photos"] as? [String: AnyObject] {
+            if let pages = photos["pages"] {
+                return Int(pages as! NSNumber)
+            }
+        }
+        return 0
     }
     
     // Create a singleton

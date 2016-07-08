@@ -12,6 +12,7 @@ import MapKit
 class LocationPhotosViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     
     @IBOutlet weak var map: MKMapView!
+    @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
     
     var images: [UIImage]!
     @IBOutlet weak var collectionView: UICollectionView!
@@ -49,6 +50,8 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         
         let location = ["lat": 40.4406, "lon": 79.9959]
         
+        setFlowLayout()
+        
         FlickrClient.sharedInstance().getImages(location) { success, error in
             if success {
                 self.performUIUpdatesOnMain {
@@ -81,6 +84,23 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         dispatch_async(dispatch_get_main_queue()) {
             updates()
         }
+    }
+    
+    func setFlowLayout() {
+        
+        let space: CGFloat = 3.0
+        let dimension: CGFloat!
+        
+        if view.frame.size.width > view.frame.size.height {
+            dimension = self.view.frame.size.height / 3.0
+        } else {
+            dimension = (self.view.frame.size.width - (2 * space)) / 3.0
+        }
+        
+        flowLayout.minimumLineSpacing = space
+        flowLayout.minimumInteritemSpacing = space
+        flowLayout.itemSize = CGSizeMake(dimension, dimension)
+        
     }
 
     /*

@@ -79,7 +79,7 @@
                                             <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="XpG-5h-TUe">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="XpG-5h-TUe">
                                                     <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
                                                     <variation key="widthClass=compact" fixedFrame="YES">
                                                         <rect key="frame" x="0.0" y="0.0" width="100" height="100"/>
@@ -145,6 +145,7 @@
                     </view>
                     <connections>
                         <outlet property="collectionView" destination="Fr6-OC-7K3" id="sjk-nW-MOo"/>
+                        <outlet property="flowLayout" destination="mru-0Q-814" id="O4u-lN-sv0"/>
                         <outlet property="map" destination="eYn-80-0od" id="ipu-sL-xQJ"/>
                     </connections>
                 </viewController>
