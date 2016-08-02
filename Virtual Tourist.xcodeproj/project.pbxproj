@@ -136,9 +136,6 @@
 			isa = PBXGroup;
 			children = (
 				31D95F5C1D2D581700A5755B /* Controllers */,
-				31442FED1D1C29FA0064DA11 /* LocationPhotosViewController.swift */,
-				31442FF81D2C410F0064DA11 /* LocationImageViewCell.swift */,
-				315F157A1CF5F36700127D54 /* MapViewController.swift */,
 				315F15A61CF61AB700127D54 /* Model */,
 				315F15781CF5F36700127D54 /* AppDelegate.swift */,
 				315F157C1CF5F36700127D54 /* Main.storyboard */,
@@ -183,6 +180,9 @@
 		31D95F5C1D2D581700A5755B /* Controllers */ = {
 			isa = PBXGroup;
 			children = (
+				31442FED1D1C29FA0064DA11 /* LocationPhotosViewController.swift */,
+				31442FF81D2C410F0064DA11 /* LocationImageViewCell.swift */,
+				315F157A1CF5F36700127D54 /* MapViewController.swift */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";

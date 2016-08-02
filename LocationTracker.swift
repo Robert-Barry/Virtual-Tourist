@@ -5,6 +5,8 @@
 //  Created by Robert Barry on 6/15/16.
 //  Copyright © 2016 Robert Barry. All rights reserved.
 //
+// Location Tracker tracks a user's map location as they search on the map in the map view.
+// It uses Core Data to persist the location.
 
 import Foundation
 import CoreData
@@ -12,6 +14,7 @@ import CoreData
 
 class LocationTracker: NSManagedObject {
 
+    
     convenience init(centerLatitude: Double, centerLongitude: Double, latitudeDelta: Double, longitudeDelta: Double, context: NSManagedObjectContext) {
         
         if let entity = NSEntityDescription.entityForName("LocationTracker", inManagedObjectContext: context) {

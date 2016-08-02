@@ -80,7 +80,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 }
             }
         } catch {
-            fatalError("Failed to previous location: \(error)")
+            fatalError("Failed to get previous location: \(error)")
         }
 
     }
