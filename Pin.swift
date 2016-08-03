@@ -11,7 +11,15 @@ import CoreData
 
 
 class Pin: NSManagedObject {
-
-// Insert code here to add functionality to your managed object subclass
-
+    
+    convenience init(latitude: Double, longitude: Double, context: NSManagedObjectContext) {
+        if let entity = NSEntityDescription.entityForName("Pin", inManagedObjectContext: context) {
+            self.init(entity: entity, insertIntoManagedObjectContext: context)
+            self.latitude = latitude
+            self.longitude = longitude
+            self.images = Set<Image>()
+        } else {
+            fatalError("Unable to find entity named Pin")
+        }
+    }
 }

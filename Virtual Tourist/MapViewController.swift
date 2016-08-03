@@ -101,6 +101,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
+        // Send latitude and longitude data to the next view controller
         let controller = segue.destinationViewController as! LocationPhotosViewController
         
         controller.latitude = selectedAnnotation?.coordinate.latitude
@@ -152,8 +153,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 return
             }
         }
-        
-        //print(annotation)
     }
 
     @IBAction func editMap(sender: AnyObject) {
@@ -177,7 +176,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
 // DELEGATE MKMapViewDelegate
     func mapView(mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-
+        
+        // Track the map's location when the user changes the map
         if mapViewRegionDidChangeFromUserInteraction() {
             print("User changed region")
             locationTracker.trackLocation(map.region.center.latitude, map.region.center.longitude, map.region.span.latitudeDelta, map.region.span.longitudeDelta)
@@ -186,6 +186,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
     
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
+        // Delete the pins if the user chooses to do so
         if arePinsEditable {
             print("Edit pins")
             view.removeFromSuperview()

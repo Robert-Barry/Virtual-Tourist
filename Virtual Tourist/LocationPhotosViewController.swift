@@ -48,7 +48,7 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         annotation.coordinate = coordinate
         map.addAnnotation(annotation)
         
-        let location = ["lat": 40.4406, "lon": 79.9959]
+        let location = ["lat": latitude!, "lon": longitude!]
         
         setFlowLayout()
         

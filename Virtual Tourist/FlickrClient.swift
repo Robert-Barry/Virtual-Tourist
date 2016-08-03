@@ -13,7 +13,6 @@ extension FlickrClient {
     
     func getImages(location: [String:Double], completionHandlerForRequest: (success: Bool, errorString: String?) -> Void) {
         
-        
         getRandomPageNumber(location) { success, data, errorString in
             
             print("Random Page Number")
@@ -44,6 +43,7 @@ extension FlickrClient {
     func getRandomPageNumber(location: [String:Double], completeionHandlerForPageNumber: (success: Bool, data: AnyObject, errorString: String?) -> Void) {
         
         let parameters = getParameters(location)
+        print(parameters)
         
         taskForGETMethod(parameters) { results, error in
             completeionHandlerForPageNumber(success: true, data: results, errorString: nil)
@@ -69,20 +69,22 @@ extension FlickrClient {
             FlickrClient.Contstants.FlickrParameterKeys.extras: FlickrClient.Contstants.FlickrParameterValues.extras,
             FlickrClient.Contstants.FlickrParameterKeys.format: FlickrClient.Contstants.FlickrParameterValues.format,
             FlickrClient.Contstants.FlickrParameterKeys.nojsoncallback: FlickrClient.Contstants.FlickrParameterValues.nojsoncallback,
-            FlickrClient.Contstants.FlickrParameterKeys.bbox: bboxString(),
+            FlickrClient.Contstants.FlickrParameterKeys.bbox: bboxString(location["lat"]!, lon: location["lon"]!),
             FlickrClient.Contstants.FlickrParameterKeys.per_page:FlickrClient.Contstants.FlickrParameterValues.per_page
         ]
     }
     
-    private func bboxString() -> String {
-        let latitude = 40.4406
-        let longitude = -79.9959
+    private func bboxString(lat: Double, lon: Double) -> String {
+        let latitude = lat
+        let longitude = lon
+        print(latitude)
+        print(longitude)
         
         let minimumLon = max(longitude - FlickrClient.Contstants.searchBboxHalfWidth, FlickrClient.Contstants.searchLonRange.0)
         let minimumLat = max(latitude - FlickrClient.Contstants.searchBboxHalfHeight, FlickrClient.Contstants.searchLatRange.0)
         let maximumLon = min(longitude + FlickrClient.Contstants.searchBboxHalfWidth, FlickrClient.Contstants.searchLonRange.1)
         let maximumLat = min(latitude + FlickrClient.Contstants.searchBboxHalfHeight, FlickrClient.Contstants.searchLatRange.1)
-        
+        print("\(minimumLon),\(minimumLat),\(maximumLon),\(maximumLat)")
         return "\(minimumLon),\(minimumLat),\(maximumLon),\(maximumLat)"
     }
     
