@@ -8,13 +8,14 @@
 
 import UIKit
 import MapKit
+import CoreData
 
 class LocationPhotosViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     
     @IBOutlet weak var map: MKMapView!
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
     
-    var images: [UIImage]!
+    
     @IBOutlet weak var collectionView: UICollectionView!
     
     let BASE_URL = "https://api.flickr.com/services/rest/"
@@ -24,17 +25,28 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     let EXTRAS = "url_m"
     let DATA_FORMAT = "json"
     let NO_JSON_CALLBACK = "1"
+    let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
     
+    var images: [UIImage]!
+    var pin: Pin!
     var latitude: Double?
     var longitude: Double?
+    var stack: CoreDataStack!
+    var context: NSManagedObjectContext!
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        stack = appDelegate.stack
+        context = stack.context
         
         setFlowLayout()
     }
     
     override func viewWillAppear(animated: Bool) {
+        
+        
+        pin = Pin(latitude: latitude!, longitude: longitude!, context: context)
         
         let center = CLLocationCoordinate2D(latitude: latitude!, longitude: longitude!)
         let span = MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)

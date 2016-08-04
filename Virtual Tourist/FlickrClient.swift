@@ -126,4 +126,8 @@ extension FlickrClient {
         }
         return Singleton.sharedInstance
     }
+    
+    func getImage(url: NSURL) -> UIImage {
+        
+    }
 }
