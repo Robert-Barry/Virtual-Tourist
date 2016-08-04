@@ -14,14 +14,12 @@ extension FlickrClient {
     func getImages(location: [String:Double], completionHandlerForRequest: (success: Bool, errorString: String?) -> Void) {
         
         getRandomPageNumber(location) { success, data, errorString in
-            
-            print("Random Page Number")
+
             let numberOfPages = self.getNumberOfPages(data)
             
             // Pick a random page
             let pageLimit = min(numberOfPages, 4000 / Int(FlickrClient.Contstants.FlickrParameterValues.per_page)!)
             let randomPage = String(Int(arc4random_uniform(UInt32(pageLimit))) + 1)
-            print(randomPage)
             
             self.getListOfImageURLs(location, randomPage: randomPage) { (success, imageList, errorString) in
                 
@@ -42,8 +40,8 @@ extension FlickrClient {
     
     func getRandomPageNumber(location: [String:Double], completeionHandlerForPageNumber: (success: Bool, data: AnyObject, errorString: String?) -> Void) {
         
+        // Getting a random page number from Flickr
         let parameters = getParameters(location)
-        print(parameters)
         
         taskForGETMethod(parameters) { results, error in
             completeionHandlerForPageNumber(success: true, data: results, errorString: nil)
@@ -77,14 +75,12 @@ extension FlickrClient {
     private func bboxString(lat: Double, lon: Double) -> String {
         let latitude = lat
         let longitude = lon
-        print(latitude)
-        print(longitude)
         
         let minimumLon = max(longitude - FlickrClient.Contstants.searchBboxHalfWidth, FlickrClient.Contstants.searchLonRange.0)
         let minimumLat = max(latitude - FlickrClient.Contstants.searchBboxHalfHeight, FlickrClient.Contstants.searchLatRange.0)
         let maximumLon = min(longitude + FlickrClient.Contstants.searchBboxHalfWidth, FlickrClient.Contstants.searchLonRange.1)
         let maximumLat = min(latitude + FlickrClient.Contstants.searchBboxHalfHeight, FlickrClient.Contstants.searchLatRange.1)
-        print("\(minimumLon),\(minimumLat),\(maximumLon),\(maximumLat)")
+
         return "\(minimumLon),\(minimumLat),\(maximumLon),\(maximumLat)"
     }
     

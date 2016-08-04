@@ -30,9 +30,8 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
 
     override func viewDidLoad() {
         super.viewDidLoad()
-
-        // Do any additional setup after loading the view
         
+        setFlowLayout()
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -49,8 +48,6 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         map.addAnnotation(annotation)
         
         let location = ["lat": latitude!, "lon": longitude!]
-        
-        setFlowLayout()
         
         FlickrClient.sharedInstance().getImages(location) { success, error in
             if success {
@@ -87,30 +84,15 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     }
     
     func setFlowLayout() {
+        print("Setting flow layout")
+        let space: CGFloat = 1.0
+
+        let dimension: CGFloat = (self.view.frame.size.width - (2 * space)) / 3.0
         
-        let space: CGFloat = 3.0
-        let dimension: CGFloat!
-        
-        if view.frame.size.width > view.frame.size.height {
-            dimension = self.view.frame.size.height / 3.0
-        } else {
-            dimension = (self.view.frame.size.width - (2 * space)) / 3.0
-        }
-        
-        flowLayout.minimumLineSpacing = space
-        flowLayout.minimumInteritemSpacing = space
+        flowLayout.minimumLineSpacing = 3.0
+        flowLayout.minimumInteritemSpacing = 0.0
         flowLayout.itemSize = CGSizeMake(dimension, dimension)
         
     }
-
-    /*
-    // MARK: - Navigation
-
-    // In a storyboard-based application, you will often want to do a little preparation before navigation
-    override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Get the new view controller using segue.destinationViewController.
-        // Pass the selected object to the new view controller.
-    }
-    */
 
 }
