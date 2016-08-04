@@ -83,8 +83,13 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("FlickrCell", forIndexPath: indexPath) as! LocationImageViewCell
         
-        let data = NSData(contentsOfURL: FlickrClient.sharedInstance().URLList[indexPath.row])
-        cell.imageViewCell.image = UIImage(data: data!)
+        FlickrClient.sharedInstance().taskForGETImage(FlickrClient.sharedInstance().URLList[indexPath.row]) { imageData, error in
+            if let image = UIImage(data: imageData!) {
+                self.performUIUpdatesOnMain {
+                    cell.imageViewCell.image = image
+                }
+            }
+        }
         
         return cell
     }
