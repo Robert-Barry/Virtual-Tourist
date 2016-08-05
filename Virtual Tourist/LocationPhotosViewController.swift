@@ -83,16 +83,24 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("FlickrCell", forIndexPath: indexPath) as! LocationImageViewCell
         
+        if cell.imageViewCell.image != nil {
+            cell.imageViewCell.image = nil
+        }
+        
+        cell.activityView.hidesWhenStopped = true
+        cell.activityView.activityIndicatorViewStyle = .WhiteLarge
+        cell.activityView.startAnimating()
+        
         FlickrClient.sharedInstance().taskForGETImage(FlickrClient.sharedInstance().URLList[indexPath.row]) { imageData, error in
             
             if let image = imageData {
                 let _ = Image(image: image, pin: self.pin, context: self.context)
                 self.performUIUpdatesOnMain {
                     cell.imageViewCell.image = UIImage(data: image)
+                    cell.activityView.stopAnimating()
                 }
             }
         }
-        
         return cell
     }
     

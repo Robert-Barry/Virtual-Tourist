@@ -10,4 +10,6 @@ import UIKit
 
 class LocationImageViewCell: UICollectionViewCell {
     @IBOutlet weak var imageViewCell: UIImageView!
+    
+    @IBOutlet weak var activityView: UIActivityIndicatorView!
 }
