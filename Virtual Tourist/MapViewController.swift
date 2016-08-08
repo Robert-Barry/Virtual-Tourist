@@ -20,12 +20,16 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
 // VARIABLES
     var stack: CoreDataStack!
+    var context: NSManagedObjectContext!
     var locationTracker: LocationTracker!
     var isMapData: Bool? // Has the user used the app before?
     var arePinsEditable = false
     var label: UILabel!
     var map: MKMapView!
     var selectedAnnotation: MKAnnotation?
+    var animatePins: Bool = true
+    
+    var pins = [Pin]()
     
     
     
@@ -33,12 +37,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // Create the map using code
         map = MKMapView(frame: CGRectMake(0, 0, view.frame.width, view.frame.height))
-        
         map.delegate = self
-        
         view.addSubview(map)
         
+        
+        // Create a button to delete pins
         label = UILabel(frame: CGRectMake(0, 0, view.frame.width, 68))
         label.center = CGPointMake(view.frame.width - (view.frame.width / 2), view.frame.height - (68 / 2))
         label.backgroundColor = UIColor.blueColor()
@@ -57,12 +62,16 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         // Core Data Stack
         stack = appDelegate.stack
+        context = stack.context
+        
+        
+        let pinFetchRequest = NSFetchRequest(entityName: "Pin")
         
         // Create fetch request to get the users last location data
         let fetchRequest = NSFetchRequest(entityName: "LocationTracker")
         
         do {
-            // fetch Core Data
+            // fetch location from Core Data
             let fetchedLocation = try stack.context.executeFetchRequest(fetchRequest) as! [LocationTracker]
             
             // If no array is returned, then the user has never used the app
@@ -82,6 +91,30 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         } catch {
             fatalError("Failed to get previous location: \(error)")
         }
+        
+        do {
+            // fetch the pins from Core Data
+            let fetchedPins = try context.executeFetchRequest(pinFetchRequest) as! [Pin]
+            
+            // If no array is returned, move along
+            if fetchedPins.count == 0 {
+                print("No saved pins")
+            } else {
+
+                pins = fetchedPins
+                print("Saved pins found")
+                
+                animatePins = false
+                
+                for pin in pins {
+                    addPinToMap(CLLocationCoordinate2D(latitude: Double(pin.latitude!), longitude: Double(pin.longitude!)))
+                }
+                
+                animatePins = true
+            }
+        } catch {
+            fatalError("Failed to check for saved pin locations: \(error)")
+        }
 
     }
     
@@ -89,6 +122,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         super.viewWillAppear(animated)
         
         label.center.y = view.frame.height + (68 / 2)
+        
+        print("Map annotations count: \(map.annotations.count)")
+
     }
     
     override func viewDidAppear(animated: Bool) {
@@ -106,6 +142,14 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         controller.latitude = selectedAnnotation?.coordinate.latitude
         controller.longitude = selectedAnnotation?.coordinate.longitude
+        
+        do {
+            try stack?.saveContext()
+            print("Context saved")
+        } catch {
+            print("Error while saving")
+        }
+        
     }
     
     // The function mapViewRegionDidChangeFromUserInteraction() comes from this Stack Overflow URL:
@@ -145,17 +189,28 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
             if recognizer.state == .Ended {
                 let touchPoint = recognizer.locationInView(map)
+                
+                // Coordinates chosen by user
                 let newCoordinates = map.convertPoint(touchPoint, toCoordinateFromView: map)
-                let annotation = MKPointAnnotation()
-                annotation.coordinate = newCoordinates
-                map.addAnnotation(annotation)
-                print("Long press ended")
-                return
+                
+                // Append a new pin to the array
+                pins.append(Pin(latitude: newCoordinates.latitude, longitude: newCoordinates.longitude, context: context))
+                
+                // Create the annotation
+                addPinToMap(newCoordinates)
             }
         }
     }
+    
+    
+    func addPinToMap(coordinates: CLLocationCoordinate2D) {
+        let annotation = MKPointAnnotation()
+        annotation.coordinate = coordinates
+        map.addAnnotation(annotation)
+    }
 
     @IBAction func editMap(sender: AnyObject) {
+        print("Can edit pins")
         if editButton.title == "Edit" {
             editButton.title = "Done"
             arePinsEditable = true
@@ -189,18 +244,34 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         // Delete the pins if the user chooses to do so
         if arePinsEditable {
             print("Edit pins")
-            view.removeFromSuperview()
+            for pin in pins {
+                if view.annotation?.coordinate.latitude == pin.latitude && view.annotation?.coordinate.longitude == pin.longitude {
+                    pins.removeAtIndex(pins.indexOf(pin)!)
+                    context.deleteObject(pin)
+                    mapView.removeAnnotation(view.annotation!)
+                   
+                }
+            }
         } else {
             selectedAnnotation = view.annotation
             performSegueWithIdentifier("locationPhotos", sender: self)
         }
+        print("Number of pins: \(pins.count)")
     }
     
     func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
-        let annotationView = MKPinAnnotationView(annotation: annotation, reuseIdentifier: "pin")
-        annotationView.animatesDrop = true
-        return annotationView
+            let identifier = "pin"
+            var view: MKPinAnnotationView
+            if let dequeuedView = mapView.dequeueReusableAnnotationViewWithIdentifier(identifier)
+                as? MKPinAnnotationView {
+                dequeuedView.annotation = annotation
+                view = dequeuedView
+            } else {
+                view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
+            }
+            return view
     }
-
 }
+
+
 

@@ -43,8 +43,28 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         setFlowLayout()
     }
     
+    override func viewWillDisappear(animated: Bool) {
+        do {
+            try stack?.saveContext()
+            print("Context saved")
+        } catch {
+            print("Error while saving")
+        }
+    }
+    
     override func viewWillAppear(animated: Bool) {
         
+        // Create fetch request to get the users last location data
+        let fetchRequest = NSFetchRequest(entityName: "Pin")
+        
+        do {
+            // fetch Core Data
+            let fetchedPin = try stack.context.executeFetchRequest(fetchRequest) as! [Pin]
+            print("Request fetched")
+            print(fetchedPin)
+        } catch {
+            print("No pin")
+        }
         
         pin = Pin(latitude: latitude!, longitude: longitude!, context: context)
         
