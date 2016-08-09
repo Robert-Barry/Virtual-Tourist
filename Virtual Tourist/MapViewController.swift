@@ -27,6 +27,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     var label: UILabel!
     var map: MKMapView!
     var selectedAnnotation: MKAnnotation?
+    var selectedPin: Pin!
     var animatePins: Bool = true
     
     var pins = [Pin]()
@@ -64,10 +65,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         stack = appDelegate.stack
         context = stack.context
         
-        
-        let pinFetchRequest = NSFetchRequest(entityName: "Pin")
-        
-        // Create fetch request to get the users last location data
+        // Create fetch request to get the user's last location data
         let fetchRequest = NSFetchRequest(entityName: "LocationTracker")
         
         do {
@@ -84,13 +82,16 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 locationTracker = LocationTracker(centerLatitude: fetchedLocation[0].centerLatitude as! Double, centerLongitude: fetchedLocation[0].centerLongitude as! Double, latitudeDelta: fetchedLocation[0].latitudeDelta as! Double, longitudeDelta: fetchedLocation[0].longitudeDelta as! Double, context: stack.context)
                 
                 // Once the Core Data information has been fetched, delete it
-                for item in fetchedLocation {
+                /*for item in fetchedLocation {
                     stack.context.deleteObject(item)
-                }
+                }*/
             }
         } catch {
             fatalError("Failed to get previous location: \(error)")
         }
+        
+        // Create fetch request to get the user's previously chosen pin locations
+        let pinFetchRequest = NSFetchRequest(entityName: "Pin")
         
         do {
             // fetch the pins from Core Data
@@ -122,8 +123,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         super.viewWillAppear(animated)
         
         label.center.y = view.frame.height + (68 / 2)
-        
-        print("Map annotations count: \(map.annotations.count)")
 
     }
     
@@ -140,8 +139,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         // Send latitude and longitude data to the next view controller
         let controller = segue.destinationViewController as! LocationPhotosViewController
         
-        controller.latitude = selectedAnnotation?.coordinate.latitude
-        controller.longitude = selectedAnnotation?.coordinate.longitude
+        controller.pin = selectedPin
         
         do {
             try stack?.saveContext()
@@ -152,6 +150,28 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
     }
     
+    @IBAction func editMap(sender: AnyObject) {
+        print("Can edit pins")
+        if editButton.title == "Edit" {
+            editButton.title = "Done"
+            arePinsEditable = true
+            UIView.animateWithDuration(0.15, animations: {
+                self.label.center.y = self.view.frame.height - (68 / 2)
+                self.map.center.y -= 68
+            })
+        } else {
+            editButton.title = "Edit"
+            arePinsEditable = false
+            UIView.animateWithDuration(0.15, animations: {
+                self.label.center.y = self.view.frame.height + (68 / 2)
+                self.map.center.y += 68
+            })
+        }
+    }
+    
+
+    
+// HELPER FUNCTIONS
     // The function mapViewRegionDidChangeFromUserInteraction() comes from this Stack Overflow URL:
     // http://stackoverflow.com/questions/33131213/regiondidchange-called-several-times-on-app-load-swift
     // It tests if the map was changed by the user or by iOS
@@ -175,18 +195,18 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         // Zoom level
         let span = MKCoordinateSpanMake(locationTracker.latitudeDelta as! Double, locationTracker.longitudeDelta as! Double)
-
+        
         let region = MKCoordinateRegionMake(center, span)
         map.setRegion(region, animated: false )
     }
     
     func handleLongPress(recognizer: UILongPressGestureRecognizer) {
         if arePinsEditable == false {
-        
+            
             if recognizer.state == .Began {
                 print("Long press began")
             }
-        
+            
             if recognizer.state == .Ended {
                 let touchPoint = recognizer.locationInView(map)
                 
@@ -202,30 +222,11 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
-    
+    // adds a pin to the map
     func addPinToMap(coordinates: CLLocationCoordinate2D) {
         let annotation = MKPointAnnotation()
         annotation.coordinate = coordinates
         map.addAnnotation(annotation)
-    }
-
-    @IBAction func editMap(sender: AnyObject) {
-        print("Can edit pins")
-        if editButton.title == "Edit" {
-            editButton.title = "Done"
-            arePinsEditable = true
-            UIView.animateWithDuration(0.15, animations: {
-                self.label.center.y = self.view.frame.height - (68 / 2)
-                self.map.center.y -= 68
-            })
-        } else {
-            editButton.title = "Edit"
-            arePinsEditable = false
-            UIView.animateWithDuration(0.15, animations: {
-                self.label.center.y = self.view.frame.height + (68 / 2)
-                self.map.center.y += 68
-            })
-        }
     }
     
     
@@ -241,23 +242,24 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
     
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
-        // Delete the pins if the user chooses to do so
-        if arePinsEditable {
-            print("Edit pins")
-            for pin in pins {
-                if view.annotation?.coordinate.latitude == pin.latitude && view.annotation?.coordinate.longitude == pin.longitude {
+        // Find the selected pin in the pins array
+        for pin in pins {
+            if view.annotation?.coordinate.latitude == pin.latitude && view.annotation?.coordinate.longitude == pin.longitude {
+                // Delete the pins if the user chooses to do so
+                if arePinsEditable {
+                    print("Deleting pins")
                     pins.removeAtIndex(pins.indexOf(pin)!)
                     context.deleteObject(pin)
                     mapView.removeAnnotation(view.annotation!)
-                   
+                } else {
+                    selectedAnnotation = view.annotation
+                    selectedPin = pin
+                    performSegueWithIdentifier("locationPhotos", sender: self)
                 }
             }
-        } else {
-            selectedAnnotation = view.annotation
-            performSegueWithIdentifier("locationPhotos", sender: self)
         }
-        print("Number of pins: \(pins.count)")
     }
+
     
     func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
             let identifier = "pin"
@@ -269,6 +271,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             } else {
                 view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
             }
+            view.animatesDrop = animatePins
             return view
     }
 }

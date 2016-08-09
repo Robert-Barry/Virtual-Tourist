@@ -12,37 +12,35 @@ import CoreData
 
 class LocationPhotosViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     
+// OUTLETS
     @IBOutlet weak var map: MKMapView!
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
-    
-    
     @IBOutlet weak var collectionView: UICollectionView!
     
-    let BASE_URL = "https://api.flickr.com/services/rest/"
-    let METHOD_NAME = "flickr.photos.search"
-    let API_KEY = "87dd9e70930748bb40e780e47c10a40f"
-    let SAFE_SEARCH = "1"
-    let EXTRAS = "url_m"
-    let DATA_FORMAT = "json"
-    let NO_JSON_CALLBACK = "1"
+// CONSTANTS
     let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
     
+// VARIABLES
     var images: [UIImage]!
     var pin: Pin!
-    var latitude: Double?
-    var longitude: Double?
     var stack: CoreDataStack!
     var context: NSManagedObjectContext!
 
+    
+    
+// OVERRIDES
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        // assign the context
         stack = appDelegate.stack
         context = stack.context
         
+        // set the layout of the collection view
         setFlowLayout()
     }
     
+    // Save the context when going back to the MapViewController
     override func viewWillDisappear(animated: Bool) {
         do {
             try stack?.saveContext()
@@ -53,44 +51,42 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     }
     
     override func viewWillAppear(animated: Bool) {
+        // Extract the pin's latitude and longitude and make them a double
+        let latitude = Double(pin.latitude!)
+        let longitude = Double(pin.longitude!)
         
-        // Create fetch request to get the users last location data
-        let fetchRequest = NSFetchRequest(entityName: "Pin")
-        
-        do {
-            // fetch Core Data
-            let fetchedPin = try stack.context.executeFetchRequest(fetchRequest) as! [Pin]
-            print("Request fetched")
-            print(fetchedPin)
-        } catch {
-            print("No pin")
-        }
-        
-        pin = Pin(latitude: latitude!, longitude: longitude!, context: context)
-        
-        let center = CLLocationCoordinate2D(latitude: latitude!, longitude: longitude!)
+        // Set the map region
+        let center = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         let span = MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
         let region = MKCoordinateRegionMake(center, span)
         
         map.setRegion(region, animated: false)
         
-        let coordinate = CLLocationCoordinate2D(latitude: latitude!, longitude: longitude!)
+        // Add an annotation to the map
+        let coordinate = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
         let annotation = MKPointAnnotation()
         annotation.coordinate = coordinate
         map.addAnnotation(annotation)
         
-        let location = ["lat": latitude!, "lon": longitude!]
+        let location = ["lat": latitude, "lon": longitude]
         
-        FlickrClient.sharedInstance().getImages(location) { success, error in
-            if success {
-                self.performUIUpdatesOnMain {
-                    print("SUCCESS")
-                    self.collectionView.reloadData()
-                }
+        // Check if images alread exist. If so, use the pre-existing images.
+        // Otherwise, load from Flickr.
+        if pin.images?.count == 0 {
+            print("No previous images. Loading from Flickr")
+            FlickrClient.sharedInstance().getImages(location) { success, error in
+                if success {
+                    self.performUIUpdatesOnMain {
+                        print("SUCCESS")
+                        self.collectionView.reloadData()
+                    }
                 
-            } else {
-                print("error")
+                } else {
+                    print("error")
+                }
             }
+        } else {
+            //images = pin.convertToImageArray()
         }
     
     }

@@ -8,7 +8,7 @@
 
 import Foundation
 import CoreData
-
+import UIKit
 
 class Pin: NSManagedObject {
     
@@ -21,5 +21,15 @@ class Pin: NSManagedObject {
         } else {
             fatalError("Unable to find entity named Pin")
         }
+    }
+    
+    func convertToImageArray() -> [UIImage] {
+        var imageArray = [UIImage]()
+        
+        for imageData in self.images! {
+            imageArray.append(UIImage(data: imageData.image)!)
+        }
+        
+        return imageArray
     }
 }
