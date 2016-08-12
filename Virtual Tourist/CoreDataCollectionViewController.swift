@@ -29,7 +29,7 @@ class CoreDataCollectionViewController: UICollectionViewController {
     }
     
     required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: aDecoder)
     }
 
     // MARK: UICollectionViewDataSource
@@ -75,13 +75,14 @@ class CoreDataCollectionViewController: UICollectionViewController {
 // MARK:  - Collection Data Source
 extension CoreDataCollectionViewController {
     
+    override func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
+
+       return 1
+    }
+    
     override func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        
-        if let fc = fetchedResultsController{
-            return fc.sections![section].numberOfObjects;
-        }else{
-            return 0
-        }
+
+        return 21
     }
 }
 

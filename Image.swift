@@ -12,12 +12,11 @@ import CoreData
 
 class Image: NSManagedObject {
 
-    convenience init(image: NSData, pin: Pin, id: NSNumber, context: NSManagedObjectContext) {
+    convenience init(image: NSData, pin: Pin, context: NSManagedObjectContext) {
         if let entity = NSEntityDescription.entityForName("Image", inManagedObjectContext: context) {
             self.init(entity: entity, insertIntoManagedObjectContext: context)
             self.image = image
             self.pin = pin
-            self.id = id
         } else {
             fatalError("Unable to find entity named Image")
         }

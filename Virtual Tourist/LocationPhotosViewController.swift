@@ -15,28 +15,63 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
 // OUTLETS
     @IBOutlet weak var map: MKMapView!
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
-    @IBOutlet weak var collectionView: CoreDataCollectionViewController!
+    @IBOutlet weak var collectionView: UICollectionView!
     
 // CONSTANTS
-    let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+    var appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
     
 // VARIABLES
-    var images: [UIImage]!
     var pin: Pin!
     var stack: CoreDataStack!
     var context: NSManagedObjectContext!
-    var fetchedResultsController: NSFetchedResultsController!
     var thereAreSavedImages: Bool!
+    var fetchedResultsController: NSFetchedResultsController!
+    
+    // The selected indexes array keeps all of the indexPaths for cells that are "selected". The array is
+    // used inside cellForItemAtIndexPath to lower the alpha of selected cells.
+    var selectedIndexes = [NSIndexPath]()
+    
+    // Keep the changes. We will keep track of insertions, deletions, and updates.
+    var insertedIndexPaths: [NSIndexPath]!
+    var deletedIndexPaths: [NSIndexPath]!
+    var updatedIndexPaths: [NSIndexPath]!
+    
+
     
     
 // OVERRIDES
     override func viewDidLoad() {
+        print("in viewDidLoad()")
+        
         super.viewDidLoad()
         
         // assign the context
         stack = appDelegate.stack
         context = stack.context
-        images = [UIImage]()
+        
+        // initialize the context
+        fetchedResultsController = {
+            let fetchRequest = NSFetchRequest(entityName: "Image")
+            fetchRequest.predicate = NSPredicate(format: "pin = %@", self.pin)
+            fetchRequest.sortDescriptors = []
+            
+            let fetchedResultsController = NSFetchedResultsController(fetchRequest: fetchRequest, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+            fetchedResultsController.delegate = self
+            
+            return fetchedResultsController
+        }()
+        
+        // Start the fetched results controller
+        var error: NSError?
+        do {
+            try fetchedResultsController!.performFetch()
+        } catch let error1 as NSError {
+            error = error1
+        }
+        
+        if let error = error {
+            print("Error performing initial fetch: \(error)")
+        }
         
         // set the layout of the collection view
         setFlowLayout()
@@ -45,21 +80,20 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     
     // Save the context when going back to the MapViewController
     override func viewWillDisappear(animated: Bool) {
-        print("IMAGES on view disappearing: \(images.count)")
         do {
             try stack?.saveContext()
             print("Context saved")
         } catch {
             print("Error while saving")
         }
-        images.removeAll()
     }
     
     override func viewWillAppear(animated: Bool) {
-        images.removeAll()
+        
+        print("in viewWillAppear")
+
         FlickrClient.sharedInstance().URLList.removeAll()
-        print("iamges on view appearing: \(FlickrClient.sharedInstance().URLList.count)")
-        print("URLLIST on view appearing: \(FlickrClient.sharedInstance().URLList.count)")
+
         // Extract the pin's latitude and longitude and make them a double
         let latitude = Double(pin.latitude!)
         let longitude = Double(pin.longitude!)
@@ -69,6 +103,8 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         let span = MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
         let region = MKCoordinateRegionMake(center, span)
         
+        map.userInteractionEnabled = false
+        
         map.setRegion(region, animated: false)
         
         // Add an annotation to the map
@@ -77,95 +113,54 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         annotation.coordinate = coordinate
         map.addAnnotation(annotation)
         
-        // Initialize the fetched results controller
-        initializeFetchedResultsController()
-        
-        do {
-            try fetchedResultsController.performFetch()
-        } catch {
-            print("Error fetching...")
-        }
-        
         if fetchedResultsController.fetchedObjects!.count == 0 {
-            requestImagesFromFlickr(latitude: latitude, longitude: longitude)
-            self.thereAreSavedImages = false
-        } else {
-            let imageObjects = fetchedResultsController.fetchedObjects as! [Image]
-            print("Fetched: \(imageObjects.count)")
-            for image in imageObjects {
-                images.append(UIImage(data: image.image!)!)
-            }
-            self.thereAreSavedImages = true
+            FlickrClient.sharedInstance().requestImagesFromFlickr(pin: pin, latitude: latitude, longitude: longitude)
         }
     }
     
+    func configureCell(cell: LocationImageViewCell, indexPath: NSIndexPath) {
+        print("in configureCell")
+        
+        let image = fetchedResultsController!.objectAtIndexPath(indexPath) as! Image
+        
+        cell.imageViewCell.image = UIImage(data: image.image!)
+        
+        // If the cell is "selected" it's image is grayed out
+        
+        if let _ = selectedIndexes.indexOf(indexPath) {
+            cell.imageViewCell.alpha = 0.05
+        } else {
+            cell.imageViewCell.alpha = 1.0
+        }
+    }
     
     
 // HELPER FUNCTIONS
-    func initializeFetchedResultsController() {
-        let request = NSFetchRequest(entityName: "Image")
-        request.predicate = NSPredicate(format: "pin = %@", self.pin)
-        let idSort = NSSortDescriptor(key: "id", ascending: true)
-        request.sortDescriptors = [idSort]
-        
-        fetchedResultsController = NSFetchedResultsController(fetchRequest: request, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
-        fetchedResultsController.delegate = self
-    }
     
-    func requestImagesFromFlickr(latitude latitude: Double, longitude: Double) {
-        print("Request from Flickr")
-        let location = ["lat": Double(pin.latitude!), "lon": Double(pin.longitude!)]
-        FlickrClient.sharedInstance().getImages(location) { success, error in
-            if success {
-                self.performUIUpdatesOnMain {
-                    print("SUCCESS")
-                    self.collectionView.reloadData()
-                }
-                
-            } else {
-                print("error")
-            }
-        }
-        
+    
+    func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
+        return self.fetchedResultsController.sections?.count ?? 0
     }
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if thereAreSavedImages == true {
-            print("Images count: \(images.count)")
-            return images.count
-        }
-        print("URLList count: \(FlickrClient.sharedInstance().URLList.count)")
-        return FlickrClient.sharedInstance().URLList.count
+        let sectionInfo = self.fetchedResultsController.sections![section]
         
+        print("number Of Cells: \(sectionInfo.numberOfObjects)")
+        return sectionInfo.numberOfObjects
+
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
+        print("Cell")
+        // Create the cell
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("FlickrCell", forIndexPath: indexPath) as! LocationImageViewCell
-        if cell.imageViewCell.image != nil {
-            cell.imageViewCell.image = nil
-        }
         
         cell.activityView.hidesWhenStopped = true
         cell.activityView.activityIndicatorViewStyle = .WhiteLarge
         cell.activityView.startAnimating()
         
-        if thereAreSavedImages == false {
-            FlickrClient.sharedInstance().taskForGETImage(FlickrClient.sharedInstance().URLList[indexPath.row]) { imageData, error in
-                
-                if let image = imageData {
-                    let _ = Image(image: image, pin: self.pin, id: indexPath.row, context: self.context)
-                    self.images.append(UIImage(data: image)!)
-                    self.performUIUpdatesOnMain {
-                        cell.imageViewCell.image = self.images.last
-                        cell.activityView.stopAnimating()
-                    }
-                }
-            }
-        } else {
-            cell.imageViewCell.image = self.images[indexPath.row]
-            cell.activityView.stopAnimating()
-        }
-
+        self.configureCell(cell, indexPath: indexPath)
+        
         return cell
     }
     
@@ -187,4 +182,102 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         
     }
 
+}
+
+// MARK:  - Fetches
+extension LocationPhotosViewController {
+    
+    func executeSearch(){
+        if let fc = fetchedResultsController{
+            do{
+                try fc.performFetch()
+            }catch let e as NSError{
+                print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
+            }
+        }
+    }
+}
+
+// MARK:  - Delegate
+
+extension LocationPhotosViewController {
+    
+    
+    // MARK: - Fetched Results Controller Delegate
+    
+    // Whenever changes are made to Core Data the following three methods are invoked. This first method is used to create
+    // three fresh arrays to record the index paths that will be changed.
+    func controllerWillChangeContent(controller: NSFetchedResultsController) {
+        
+        // We are about to handle some new changes. Start out with empty arrays for each change type
+        insertedIndexPaths = [NSIndexPath]()
+        deletedIndexPaths = [NSIndexPath]()
+        updatedIndexPaths = [NSIndexPath]()
+        
+        print("in controllerWillChangeContent")
+    }
+    
+    // The second method may be called multiple times, once for each Color object that is added, deleted, or changed.
+    // We store the incex paths into the three arrays.
+    
+    
+    func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
+        switch type {
+            
+        case .Insert:
+            print("Insert an item")
+            // Here we are noting that a new Color instance has been added to Core Data. We remember its index path
+            // so that we can add a cell in "controllerDidChangeContent". Note that the "newIndexPath" parameter has
+            // the index path that we want in this case
+            insertedIndexPaths.append(newIndexPath!)
+            break
+        case .Delete:
+            print("Delete an item")
+            // Here we are noting that a Color instance has been deleted from Core Data. We keep remember its index path
+            // so that we can remove the corresponding cell in "controllerDidChangeContent". The "indexPath" parameter has
+            // value that we want in this case.
+            deletedIndexPaths.append(indexPath!)
+            break
+        case .Update:
+            print("Update an item.")
+            // We don't expect Color instances to change after they are created. But Core Data would
+            // notify us of changes if any occured. This can be useful if you want to respond to changes
+            // that come about after data is downloaded. For example, when an images is downloaded from
+            // Flickr in the Virtual Tourist app
+            updatedIndexPaths.append(indexPath!)
+            break
+        case .Move:
+            print("Move an item. We don't expect to see this in this app.")
+            break
+            //default:
+            //break
+        }
+    }
+    
+    // This method is invoked after all of the changed in the current batch have been collected
+    // into the three index path arrays (insert, delete, and upate). We now need to loop through the
+    // arrays and perform the changes.
+    //
+    // The most interesting thing about the method is the collection view's "performBatchUpdates" method.
+    // Notice that all of the changes are performed inside a closure that is handed to the collection view.
+    func controllerDidChangeContent(controller: NSFetchedResultsController) {
+        
+        print("in controllerDidChangeContent. changes.count: \(insertedIndexPaths.count + deletedIndexPaths.count)")
+        
+        collectionView.performBatchUpdates({() -> Void in
+            
+            for indexPath in self.insertedIndexPaths {
+                self.collectionView.insertItemsAtIndexPaths([indexPath])
+            }
+            
+            for indexPath in self.deletedIndexPaths {
+                self.collectionView.deleteItemsAtIndexPaths([indexPath])
+            }
+            
+            for indexPath in self.updatedIndexPaths {
+                self.collectionView.reloadItemsAtIndexPaths([indexPath])
+            }
+            
+            }, completion: nil)
+    }
 }

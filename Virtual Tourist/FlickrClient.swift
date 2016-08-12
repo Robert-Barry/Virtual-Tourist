@@ -8,6 +8,7 @@
 
 import Foundation
 import UIKit
+import CoreData
 
 extension FlickrClient {
     
@@ -35,6 +36,33 @@ extension FlickrClient {
             }
         }
         
+        
+    }
+    
+    func requestImagesFromFlickr(pin pin: Pin, latitude latitude: Double, longitude: Double) {
+        print("Request from Flickr")
+        
+        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
+        let stack = appDelegate.stack
+        let context = stack?.context
+        
+        let location = ["lat": Double(latitude), "lon": Double(longitude)]
+        getImages(location) { success, error in
+        if success {
+            print("Succes loading the URL list")
+            for url in self.URLList {
+                self.taskForGETImage(url) { imageData, error in
+                    if let image = imageData {
+                        _ = Image(image: image, pin: pin, context: context!)
+                    }
+                        print("Image saved.")
+                    }
+                }
+                
+            } else {
+                print("error")
+            }
+        }
         
     }
     
