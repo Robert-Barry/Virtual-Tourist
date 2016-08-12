@@ -10,12 +10,12 @@ import UIKit
 import MapKit
 import CoreData
 
-class LocationPhotosViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
+class LocationPhotosViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
     
 // OUTLETS
     @IBOutlet weak var map: MKMapView!
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
-    @IBOutlet weak var collectionView: UICollectionView!
+    @IBOutlet weak var collectionView: CoreDataCollectionViewController!
     
 // CONSTANTS
     let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
@@ -25,7 +25,8 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     var pin: Pin!
     var stack: CoreDataStack!
     var context: NSManagedObjectContext!
-
+    var fetchedResultsController: NSFetchedResultsController!
+    var thereAreSavedImages: Bool!
     
     
 // OVERRIDES
@@ -35,22 +36,30 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         // assign the context
         stack = appDelegate.stack
         context = stack.context
+        images = [UIImage]()
         
         // set the layout of the collection view
         setFlowLayout()
     }
+
     
     // Save the context when going back to the MapViewController
     override func viewWillDisappear(animated: Bool) {
+        print("IMAGES on view disappearing: \(images.count)")
         do {
             try stack?.saveContext()
             print("Context saved")
         } catch {
             print("Error while saving")
         }
+        images.removeAll()
     }
     
     override func viewWillAppear(animated: Bool) {
+        images.removeAll()
+        FlickrClient.sharedInstance().URLList.removeAll()
+        print("iamges on view appearing: \(FlickrClient.sharedInstance().URLList.count)")
+        print("URLLIST on view appearing: \(FlickrClient.sharedInstance().URLList.count)")
         // Extract the pin's latitude and longitude and make them a double
         let latitude = Double(pin.latitude!)
         let longitude = Double(pin.longitude!)
@@ -68,37 +77,70 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         annotation.coordinate = coordinate
         map.addAnnotation(annotation)
         
-        let location = ["lat": latitude, "lon": longitude]
+        // Initialize the fetched results controller
+        initializeFetchedResultsController()
         
-        // Check if images alread exist. If so, use the pre-existing images.
-        // Otherwise, load from Flickr.
-        if pin.images?.count == 0 {
-            print("No previous images. Loading from Flickr")
-            FlickrClient.sharedInstance().getImages(location) { success, error in
-                if success {
-                    self.performUIUpdatesOnMain {
-                        print("SUCCESS")
-                        self.collectionView.reloadData()
-                    }
-                
-                } else {
-                    print("error")
-                }
-            }
-        } else {
-            //images = pin.convertToImageArray()
+        do {
+            try fetchedResultsController.performFetch()
+        } catch {
+            print("Error fetching...")
         }
+        
+        if fetchedResultsController.fetchedObjects!.count == 0 {
+            requestImagesFromFlickr(latitude: latitude, longitude: longitude)
+            self.thereAreSavedImages = false
+        } else {
+            let imageObjects = fetchedResultsController.fetchedObjects as! [Image]
+            print("Fetched: \(imageObjects.count)")
+            for image in imageObjects {
+                images.append(UIImage(data: image.image!)!)
+            }
+            self.thereAreSavedImages = true
+        }
+    }
     
+    
+    
+// HELPER FUNCTIONS
+    func initializeFetchedResultsController() {
+        let request = NSFetchRequest(entityName: "Image")
+        request.predicate = NSPredicate(format: "pin = %@", self.pin)
+        let idSort = NSSortDescriptor(key: "id", ascending: true)
+        request.sortDescriptors = [idSort]
+        
+        fetchedResultsController = NSFetchedResultsController(fetchRequest: request, managedObjectContext: context, sectionNameKeyPath: nil, cacheName: nil)
+        fetchedResultsController.delegate = self
+    }
+    
+    func requestImagesFromFlickr(latitude latitude: Double, longitude: Double) {
+        print("Request from Flickr")
+        let location = ["lat": Double(pin.latitude!), "lon": Double(pin.longitude!)]
+        FlickrClient.sharedInstance().getImages(location) { success, error in
+            if success {
+                self.performUIUpdatesOnMain {
+                    print("SUCCESS")
+                    self.collectionView.reloadData()
+                }
+                
+            } else {
+                print("error")
+            }
+        }
+        
     }
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        print(FlickrClient.sharedInstance().URLList.count)
+        if thereAreSavedImages == true {
+            print("Images count: \(images.count)")
+            return images.count
+        }
+        print("URLList count: \(FlickrClient.sharedInstance().URLList.count)")
         return FlickrClient.sharedInstance().URLList.count
+        
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("FlickrCell", forIndexPath: indexPath) as! LocationImageViewCell
-        
         if cell.imageViewCell.image != nil {
             cell.imageViewCell.image = nil
         }
@@ -107,16 +149,23 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         cell.activityView.activityIndicatorViewStyle = .WhiteLarge
         cell.activityView.startAnimating()
         
-        FlickrClient.sharedInstance().taskForGETImage(FlickrClient.sharedInstance().URLList[indexPath.row]) { imageData, error in
-            
-            if let image = imageData {
-                let _ = Image(image: image, pin: self.pin, context: self.context)
-                self.performUIUpdatesOnMain {
-                    cell.imageViewCell.image = UIImage(data: image)
-                    cell.activityView.stopAnimating()
+        if thereAreSavedImages == false {
+            FlickrClient.sharedInstance().taskForGETImage(FlickrClient.sharedInstance().URLList[indexPath.row]) { imageData, error in
+                
+                if let image = imageData {
+                    let _ = Image(image: image, pin: self.pin, id: indexPath.row, context: self.context)
+                    self.images.append(UIImage(data: image)!)
+                    self.performUIUpdatesOnMain {
+                        cell.imageViewCell.image = self.images.last
+                        cell.activityView.stopAnimating()
+                    }
                 }
             }
+        } else {
+            cell.imageViewCell.image = self.images[indexPath.row]
+            cell.activityView.stopAnimating()
         }
+
         return cell
     }
     

@@ -17,7 +17,6 @@ class Pin: NSManagedObject {
             self.init(entity: entity, insertIntoManagedObjectContext: context)
             self.latitude = latitude
             self.longitude = longitude
-            self.images = Set<Image>()
         } else {
             fatalError("Unable to find entity named Pin")
         }
@@ -27,9 +26,9 @@ class Pin: NSManagedObject {
         var imageArray = [UIImage]()
         
         for imageData in self.images! {
-            imageArray.append(UIImage(data: imageData.image)!)
+            let convertedImage = imageData as! Image
+            imageArray.append(UIImage(data: convertedImage.image!)!)
         }
-        
         return imageArray
     }
 }
