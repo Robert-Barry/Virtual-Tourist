@@ -123,10 +123,17 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         
         let image = fetchedResultsController!.objectAtIndexPath(indexPath) as! Image
         
+        cell.activityView.activityIndicatorViewStyle = .WhiteLarge
+        cell.activityView.startAnimating()
+        cell.activityView.hidesWhenStopped =  true
+        
         cell.imageViewCell.image = UIImage(data: image.image!)
         
-        // If the cell is "selected" it's image is grayed out
+        if FlickrClient.sharedInstance().isPlaceholder == false {
+            cell.activityView.stopAnimating()
+        }
         
+        // If the cell is "selected" it's image is grayed out
         if let _ = selectedIndexes.indexOf(indexPath) {
             cell.imageViewCell.alpha = 0.05
         } else {
@@ -154,10 +161,6 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         print("Cell")
         // Create the cell
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("FlickrCell", forIndexPath: indexPath) as! LocationImageViewCell
-        
-        cell.activityView.hidesWhenStopped = true
-        cell.activityView.activityIndicatorViewStyle = .WhiteLarge
-        cell.activityView.startAnimating()
         
         self.configureCell(cell, indexPath: indexPath)
         
@@ -226,16 +229,9 @@ extension LocationPhotosViewController {
             
         case .Insert:
             print("Insert an item")
-            // Here we are noting that a new Color instance has been added to Core Data. We remember its index path
-            // so that we can add a cell in "controllerDidChangeContent". Note that the "newIndexPath" parameter has
-            // the index path that we want in this case
             insertedIndexPaths.append(newIndexPath!)
-            break
         case .Delete:
             print("Delete an item")
-            // Here we are noting that a Color instance has been deleted from Core Data. We keep remember its index path
-            // so that we can remove the corresponding cell in "controllerDidChangeContent". The "indexPath" parameter has
-            // value that we want in this case.
             deletedIndexPaths.append(indexPath!)
             break
         case .Update:
@@ -254,10 +250,8 @@ extension LocationPhotosViewController {
         }
     }
     
-    // This method is invoked after all of the changed in the current batch have been collected
-    // into the three index path arrays (insert, delete, and upate). We now need to loop through the
-    // arrays and perform the changes.
-    //
+    
+    
     // The most interesting thing about the method is the collection view's "performBatchUpdates" method.
     // Notice that all of the changes are performed inside a closure that is handed to the collection view.
     func controllerDidChangeContent(controller: NSFetchedResultsController) {

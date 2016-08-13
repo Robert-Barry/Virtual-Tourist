@@ -39,7 +39,7 @@ extension FlickrClient {
         
     }
     
-    func requestImagesFromFlickr(pin pin: Pin, latitude latitude: Double, longitude: Double) {
+    func requestImagesFromFlickr(pin pin: Pin, latitude: Double, longitude: Double) {
         print("Request from Flickr")
         
         let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
@@ -51,17 +51,22 @@ extension FlickrClient {
         if success {
             print("Succes loading the URL list")
             for url in self.URLList {
+                let placeholder = UIImage(named: "placeholder")
+                let placeholderData = UIImageJPEGRepresentation(placeholder!, 1.0)
+                let placeholderImage = Image(image: placeholderData!, pin: pin, context: context!)
+                self.isPlaceholder = true
                 self.taskForGETImage(url) { imageData, error in
                     if let image = imageData {
-                        _ = Image(image: image, pin: pin, context: context!)
+                        placeholderImage.image = image
+                        self.isPlaceholder = false
                     }
-                        print("Image saved.")
-                    }
+                    print("Image saved.")
                 }
-                
-            } else {
-                print("error")
             }
+                
+        } else {
+                print("error")
+        }
         }
         
     }

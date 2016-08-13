@@ -21,5 +21,14 @@ class Image: NSManagedObject {
             fatalError("Unable to find entity named Image")
         }
     }
+    
+    convenience init(pin: Pin, context: NSManagedObjectContext) {
+        if let entity = NSEntityDescription.entityForName("Image", inManagedObjectContext: context) {
+            self.init(entity: entity, insertIntoManagedObjectContext: context)
+            self.pin = pin
+        } else {
+            fatalError("Unable to find entity named Image")
+        }
+    }
 
 }

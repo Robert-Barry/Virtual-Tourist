@@ -10,8 +10,9 @@ import Foundation
 
 class FlickrClient {
     
-    // variables
+    // variable
     var URLList = [NSURL]()
+    var isPlaceholder: Bool!
     
     // shared session
     var session = NSURLSession.sharedSession()
