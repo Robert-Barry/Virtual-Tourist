@@ -74,7 +74,7 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         }
         
         // set the layout of the collection view
-        setFlowLayout()
+        //setFlowLayout()
     }
 
     
@@ -115,6 +115,8 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         
         if fetchedResultsController.fetchedObjects!.count == 0 {
             FlickrClient.sharedInstance().requestImagesFromFlickr(pin: pin, latitude: latitude, longitude: longitude)
+        } else {
+            FlickrClient.sharedInstance().isPlaceholder = false
         }
     }
     
@@ -144,6 +146,24 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     
 // HELPER FUNCTIONS
     
+    // Layout the collection view
+    
+    override func viewDidLayoutSubviews() {
+        print("in viewDidLayoutSubviews()")
+        super.viewDidLayoutSubviews()
+        
+        // Lay out the collection view so that cells take up 1/3 of the width,
+        // with no space in between.
+        let layout : UICollectionViewFlowLayout = UICollectionViewFlowLayout()
+        layout.sectionInset = UIEdgeInsets(top: 0, left: 0, bottom: 0, right: 0)
+        layout.minimumLineSpacing = 3
+        layout.minimumInteritemSpacing = 3
+        
+        let width = floor(self.collectionView.frame.size.width/3 - 2)
+        layout.itemSize = CGSize(width: width, height: width)
+        collectionView.collectionViewLayout = layout
+    }
+    
     
     func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
         return self.fetchedResultsController.sections?.count ?? 0
@@ -171,18 +191,6 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         dispatch_async(dispatch_get_main_queue()) {
             updates()
         }
-    }
-    
-    func setFlowLayout() {
-        print("Setting flow layout")
-        let space: CGFloat = 1.0
-
-        let dimension: CGFloat = (self.view.frame.size.width - (2 * space)) / 3.0
-        
-        flowLayout.minimumLineSpacing = 3.0
-        flowLayout.minimumInteritemSpacing = 0.0
-        flowLayout.itemSize = CGSizeMake(dimension, dimension)
-        
     }
 
 }

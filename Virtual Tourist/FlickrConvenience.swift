@@ -12,7 +12,7 @@ class FlickrClient {
     
     // variable
     var URLList = [NSURL]()
-    var isPlaceholder: Bool!
+    var isPlaceholder = true
     
     // shared session
     var session = NSURLSession.sharedSession()

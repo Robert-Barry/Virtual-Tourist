@@ -76,7 +76,7 @@
                                 <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
                                 <color key="backgroundColor" white="0.0" alpha="1" colorSpace="calibratedWhite"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="10" minimumInteritemSpacing="10" id="2f6-hv-9GX">
-                                    <size key="itemSize" width="100" height="101"/>
+                                    <size key="itemSize" width="168" height="159"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
                                     <size key="footerReferenceSize" width="0.0" height="0.0"/>
                                     <inset key="sectionInset" minX="0.0" minY="0.0" maxX="0.0" maxY="0.0"/>
@@ -86,11 +86,28 @@
                                         <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
                                         <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                         <view key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center">
-                                            <rect key="frame" x="0.0" y="0.0" width="100" height="101"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="168" height="159"/>
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
-                                                <imageView userInteractionEnabled="NO" contentMode="center" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="XpG-5h-TUe">
+                                                <imageView userInteractionEnabled="NO" contentMode="scaleAspectFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="XpG-5h-TUe">
                                                     <rect key="frame" x="0.0" y="0.0" width="240" height="128"/>
+                                                    <constraints>
+                                                        <constraint firstAttribute="width" constant="168" id="DIz-qr-MbJ"/>
+                                                        <constraint firstAttribute="height" constant="159" id="Dap-SW-IdS"/>
+                                                    </constraints>
+                                                    <variation key="default">
+                                                        <mask key="constraints">
+                                                            <exclude reference="DIz-qr-MbJ"/>
+                                                            <exclude reference="Dap-SW-IdS"/>
+                                                        </mask>
+                                                    </variation>
+                                                    <variation key="widthClass=compact" ambiguous="YES">
+                                                        <rect key="frame" x="0.0" y="0.0" width="168" height="159"/>
+                                                        <mask key="constraints">
+                                                            <include reference="DIz-qr-MbJ"/>
+                                                            <include reference="Dap-SW-IdS"/>
+                                                        </mask>
+                                                    </variation>
                                                 </imageView>
                                                 <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="NxQ-Zh-j9s">
                                                     <rect key="frame" x="-10" y="-10" width="20" height="20"/>
@@ -101,34 +118,16 @@
                                             </subviews>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </view>
-                                        <constraints>
-                                            <constraint firstAttribute="bottomMargin" secondItem="XpG-5h-TUe" secondAttribute="bottom" constant="-8" id="8tE-n7-L74"/>
-                                            <constraint firstItem="XpG-5h-TUe" firstAttribute="top" secondItem="12b-jY-MBJ" secondAttribute="topMargin" constant="-8" id="VaQ-lS-no5"/>
-                                            <constraint firstAttribute="trailingMargin" secondItem="XpG-5h-TUe" secondAttribute="trailing" constant="-8" id="eAO-ce-OOn"/>
-                                            <constraint firstItem="XpG-5h-TUe" firstAttribute="leading" secondItem="12b-jY-MBJ" secondAttribute="leadingMargin" constant="-8" id="l6P-Hv-UZB"/>
-                                        </constraints>
                                         <variation key="default">
                                             <mask key="subviews">
                                                 <exclude reference="XpG-5h-TUe"/>
                                                 <exclude reference="NxQ-Zh-j9s"/>
-                                            </mask>
-                                            <mask key="constraints">
-                                                <exclude reference="8tE-n7-L74"/>
-                                                <exclude reference="VaQ-lS-no5"/>
-                                                <exclude reference="eAO-ce-OOn"/>
-                                                <exclude reference="l6P-Hv-UZB"/>
                                             </mask>
                                         </variation>
                                         <variation key="widthClass=compact">
                                             <mask key="subviews">
                                                 <include reference="XpG-5h-TUe"/>
                                                 <include reference="NxQ-Zh-j9s"/>
-                                            </mask>
-                                            <mask key="constraints">
-                                                <include reference="8tE-n7-L74"/>
-                                                <include reference="VaQ-lS-no5"/>
-                                                <include reference="eAO-ce-OOn"/>
-                                                <include reference="l6P-Hv-UZB"/>
                                             </mask>
                                         </variation>
                                         <connections>
