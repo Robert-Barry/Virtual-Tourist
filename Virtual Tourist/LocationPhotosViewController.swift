@@ -37,6 +37,9 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     var deletedIndexPaths: [NSIndexPath]!
     var updatedIndexPaths: [NSIndexPath]!
     
+    var latitude: Double!
+    var longitude: Double!
+    
 
     
     
@@ -73,17 +76,14 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         if let error = error {
             print("Error performing initial fetch: \(error)")
         }
+        
+        updateBottomButton()
     }
 
     
     // Save the context when going back to the MapViewController
     override func viewWillDisappear(animated: Bool) {
-        do {
-            try stack?.saveContext()
-            print("Context saved")
-        } catch {
-            print("Error while saving")
-        }
+        save()
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -94,8 +94,8 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         FlickrClient.sharedInstance().URLList.removeAll()
 
         // Extract the pin's latitude and longitude and make them a double
-        let latitude = Double(pin.latitude!)
-        let longitude = Double(pin.longitude!)
+        latitude = Double(pin.latitude!)
+        longitude = Double(pin.longitude!)
         
         // Set the map region
         let center = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
@@ -140,31 +140,54 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         }
         
         // If the cell is "selected" it's image is grayed out
-        /*
         if let _ = selectedIndexes.indexOf(indexPath) {
-            cell.imageViewCell.alpha = 0.05
+            cell.imageViewCell.alpha = 0.4
         } else {
             cell.imageViewCell.alpha = 1.0
         }
- */
+ 
+    }
+    
+    func save() {
+        do {
+            try stack?.saveContext()
+            print("Context saved")
+        } catch {
+            print("Error while saving")
+        }
     }
     
     
     @IBAction func newCollectionButtonPressed(sender: AnyObject) {
         print("New Collection button pressed")
-        
-        if newCollection.title == "New Collection" {
-            newCollection.enabled = false
-            if selectedIndexes.isEmpty {
-                deleteAllImages()
-            }
-            getImagesFromFlickr(Double(pin.latitude!), longitude: Double(pin.longitude!))
-            //FlickrClient.sharedInstance().requestImagesFromFlickr(pin: pin, latitude: Double(pin.latitude!), longitude: Double(pin.longitude!), imageObject: images)
-            
+    
+        if selectedIndexes.isEmpty {
+            deleteAllImages()
+            print("Loading new images from Flickr")
+            FlickrClient.sharedInstance().isPlaceholder = true
+            getImagesFromFlickr(latitude, longitude: longitude)
+        } else {
+            deleteSelectedImages()
         }
     }
     
+    func deleteSelectedImages() {
+        var imagesToDelete = [Image]()
+        
+        for indexPath in selectedIndexes {
+            imagesToDelete.append(fetchedResultsController.objectAtIndexPath(indexPath) as! Image)
+        }
+        
+        for image in imagesToDelete {
+            context.deleteObject(image)
+        }
+        
+        selectedIndexes = [NSIndexPath]()
+        updateBottomButton()
+    }
+    
     func getImagesFromFlickr(latitude: Double, longitude: Double) {
+        print("Getting images from Flickr...")
         let location = ["lat": latitude, "lon": longitude]
         FlickrClient.sharedInstance().getImageURLList(location) { success, error in
             if success {
@@ -173,12 +196,7 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
                 FlickrClient.sharedInstance().requestImagesFromFlickr(pin: self.pin, latitude: latitude, longitude: longitude, imageObject: images) { success, error in
                     if success {
                         print("Image downloaded")
-                        do {
-                            try self.stack?.saveContext()
-                            print("Context saved")
-                        } catch {
-                            print("Error while saving")
-                        }
+                        self.save()
                     } else {
                         print("Problem loading images")
                     }
@@ -255,22 +273,28 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
             updates()
         }
     }
-
-}
-
-// MARK:  - Fetches
-extension LocationPhotosViewController {
     
-    func executeSearch(){
-        if let fc = fetchedResultsController{
-            do{
-                try fc.performFetch()
-            }catch let e as NSError{
-                print("Error while trying to perform a search: \n\(e)\n\(fetchedResultsController)")
-            }
+    func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
+        print("in collectionView(_:didSelectItemAtIndexPath)")
+        let cell = collectionView.cellForItemAtIndexPath(indexPath) as! LocationImageViewCell
+        
+        // Whenever a cell is tapped we will toggle its presence in the selectedIndexes array
+        if let index = selectedIndexes.indexOf(indexPath) {
+            selectedIndexes.removeAtIndex(index)
+        } else {
+            selectedIndexes.append(indexPath)
         }
+        
+        // Then reconfigure the cell
+        configureCell(cell, indexPath: indexPath)
+        
+        // And update the buttom button
+        updateBottomButton()
     }
+
 }
+
+
 
 // MARK:  - Delegate
 
@@ -344,5 +368,13 @@ extension LocationPhotosViewController {
             }
             
             }, completion: nil)
+    }
+    
+    func updateBottomButton() {
+        if selectedIndexes.count > 0 {
+            newCollection.title = "Remove Selected Images"
+        } else {
+            newCollection.title = "New Collection"
+        }
     }
 }
