@@ -12,8 +12,7 @@ import CoreData
 
 extension FlickrClient {
     
-    func getImages(location: [String:Double], completionHandlerForRequest: (success: Bool, errorString: String?) -> Void) {
-        
+    func getImageURLList(location: [String:Double], completionHandlerForRequest: (success: Bool, errorString: String?) -> Void) {
         getRandomPageNumber(location) { success, data, errorString in
 
             let numberOfPages = self.getNumberOfPages(data)
@@ -28,6 +27,7 @@ extension FlickrClient {
                     
                     self.URLList = self.getListOfURLs(imageList)
                     print("Request complete")
+                    
                     completionHandlerForRequest(success: true, errorString: nil)
                     
                 } else {
@@ -39,36 +39,20 @@ extension FlickrClient {
         
     }
     
-    func requestImagesFromFlickr(pin pin: Pin, latitude: Double, longitude: Double) {
-        print("Request from Flickr")
-        
-        let appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
-        let stack = appDelegate.stack
-        let context = stack?.context
-        
-        let location = ["lat": Double(latitude), "lon": Double(longitude)]
-        getImages(location) { success, error in
-        if success {
-            print("Succes loading the URL list")
-            for url in self.URLList {
-                let placeholder = UIImage(named: "placeholder")
-                let placeholderData = UIImageJPEGRepresentation(placeholder!, 1.0)
-                let placeholderImage = Image(image: placeholderData!, pin: pin, context: context!)
-                self.isPlaceholder = true
-                self.taskForGETImage(url) { imageData, error in
-                    if let image = imageData {
-                        placeholderImage.image = image
-                        self.isPlaceholder = false
-                    }
-                    print("Image saved.")
+    func requestImagesFromFlickr(pin pin: Pin, latitude: Double, longitude: Double, imageObject: [Image], completionHandlerForRequest: (success: Bool, errorString: String?) -> Void) {
+        var i = 0
+        for url in self.URLList {
+            self.taskForGETImage(url) { imageData, error in
+                if let image = imageData {
+                    imageObject[i].image = image
+                    imageObject[i].isPlaceholderImage = false
+                    i = i + 1
+                    completionHandlerForRequest(success: true, errorString: nil)
+                } else {
+                    completionHandlerForRequest(success: false, errorString: "There was an error loading an image")
                 }
             }
-                
-        } else {
-                print("error")
         }
-        }
-        
     }
     
     func getRandomPageNumber(location: [String:Double], completeionHandlerForPageNumber: (success: Bool, data: AnyObject, errorString: String?) -> Void) {

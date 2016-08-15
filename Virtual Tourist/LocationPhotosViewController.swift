@@ -16,6 +16,7 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     @IBOutlet weak var map: MKMapView!
     @IBOutlet weak var flowLayout: UICollectionViewFlowLayout!
     @IBOutlet weak var collectionView: UICollectionView!
+    @IBOutlet weak var newCollection: UIBarButtonItem!
     
 // CONSTANTS
     var appDelegate = UIApplication.sharedApplication().delegate as! AppDelegate
@@ -72,9 +73,6 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         if let error = error {
             print("Error performing initial fetch: \(error)")
         }
-        
-        // set the layout of the collection view
-        //setFlowLayout()
     }
 
     
@@ -91,7 +89,8 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     override func viewWillAppear(animated: Bool) {
         
         print("in viewWillAppear")
-
+        
+        // Reset the URLList
         FlickrClient.sharedInstance().URLList.removeAll()
 
         // Extract the pin's latitude and longitude and make them a double
@@ -113,9 +112,14 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         annotation.coordinate = coordinate
         map.addAnnotation(annotation)
         
+        // If there are saved images, load them
         if fetchedResultsController.fetchedObjects!.count == 0 {
-            FlickrClient.sharedInstance().requestImagesFromFlickr(pin: pin, latitude: latitude, longitude: longitude)
+            print("No saved images. Loading from Flickr")
+            FlickrClient.sharedInstance().isPlaceholder = true
+            getImagesFromFlickr(latitude, longitude: longitude)
+        // Otherwise load the images from Core Data
         } else {
+            print("Saved images. Loading from Core Data")
             FlickrClient.sharedInstance().isPlaceholder = false
         }
     }
@@ -131,20 +135,79 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         
         cell.imageViewCell.image = UIImage(data: image.image!)
         
-        if FlickrClient.sharedInstance().isPlaceholder == false {
+        if image.isPlaceholderImage == false {
             cell.activityView.stopAnimating()
         }
         
         // If the cell is "selected" it's image is grayed out
+        /*
         if let _ = selectedIndexes.indexOf(indexPath) {
             cell.imageViewCell.alpha = 0.05
         } else {
             cell.imageViewCell.alpha = 1.0
         }
+ */
     }
     
     
+    @IBAction func newCollectionButtonPressed(sender: AnyObject) {
+        print("New Collection button pressed")
+        
+        if newCollection.title == "New Collection" {
+            newCollection.enabled = false
+            if selectedIndexes.isEmpty {
+                deleteAllImages()
+            }
+            getImagesFromFlickr(Double(pin.latitude!), longitude: Double(pin.longitude!))
+            //FlickrClient.sharedInstance().requestImagesFromFlickr(pin: pin, latitude: Double(pin.latitude!), longitude: Double(pin.longitude!), imageObject: images)
+            
+        }
+    }
+    
+    func getImagesFromFlickr(latitude: Double, longitude: Double) {
+        let location = ["lat": latitude, "lon": longitude]
+        FlickrClient.sharedInstance().getImageURLList(location) { success, error in
+            if success {
+                print("Succes loading the URL list")
+                let images = self.createPlaceholders()
+                FlickrClient.sharedInstance().requestImagesFromFlickr(pin: self.pin, latitude: latitude, longitude: longitude, imageObject: images) { success, error in
+                    if success {
+                        print("Image downloaded")
+                        do {
+                            try self.stack?.saveContext()
+                            print("Context saved")
+                        } catch {
+                            print("Error while saving")
+                        }
+                    } else {
+                        print("Problem loading images")
+                    }
+                }
+            } else {
+                print("error")
+            }
+        }
+    }
+    
+    func deleteAllImages() {
+        for image in fetchedResultsController.fetchedObjects as! [Image] {
+            context.deleteObject(image)
+        }
+    }
 // HELPER FUNCTIONS
+    
+    
+    func createPlaceholders() -> [Image] {
+        FlickrClient.sharedInstance().isPlaceholder = true
+        let placeholder = UIImage(named: "placeholder")
+        let placeholderData = UIImageJPEGRepresentation(placeholder!, 1.0)
+        var images = [Image]()
+        for url in FlickrClient.sharedInstance().URLList {
+            images.append(Image(image: placeholderData!, pin: pin, isPlaceholderImage: true, context: context!))
+            print(images.count)
+        }
+        return images
+    }
     
     // Layout the collection view
     
@@ -170,6 +233,7 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     }
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
+        print("in collectionView(_:numberOfItemsInSection)")
         let sectionInfo = self.fetchedResultsController.sections![section]
         
         print("number Of Cells: \(sectionInfo.numberOfObjects)")
@@ -178,7 +242,6 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     }
     
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
-        print("Cell")
         // Create the cell
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("FlickrCell", forIndexPath: indexPath) as! LocationImageViewCell
         
