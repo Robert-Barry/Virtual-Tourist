@@ -64,7 +64,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         // Core Data Stack
         stack = appDelegate.stack
         context = stack.context
-        
+
         // Create fetch request to get the user's last location data
         let fetchRequest = NSFetchRequest(entityName: "LocationTracker")
         
@@ -78,16 +78,29 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 isMapData = false // The user has never used the app
                 locationTracker = LocationTracker(centerLatitude: map.region.center.latitude, centerLongitude: map.region.center.longitude, latitudeDelta: map.region.span.latitudeDelta, longitudeDelta: map.region.span.longitudeDelta, context: stack.context)
             } else {
+                print("User's previous map location found")
                 isMapData = true // The user has used the app
                 locationTracker = LocationTracker(centerLatitude: fetchedLocation[0].centerLatitude as! Double, centerLongitude: fetchedLocation[0].centerLongitude as! Double, latitudeDelta: fetchedLocation[0].latitudeDelta as! Double, longitudeDelta: fetchedLocation[0].longitudeDelta as! Double, context: stack.context)
                 
                 // Once the Core Data information has been fetched, delete it
                 /*for item in fetchedLocation {
-                    stack.context.deleteObject(item)
-                }*/
+                 stack.context.deleteObject(item)
+                 }*/
             }
         } catch {
             fatalError("Failed to get previous location: \(error)")
+        }
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        label.center.y = view.frame.height + (68 / 2)
+        
+        print("Removing all pins")
+        pins.removeAll()
+        for annotation in map.annotations {
+            map.removeAnnotation(annotation)
         }
         
         // Create fetch request to get the user's previously chosen pin locations
@@ -101,28 +114,18 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             if fetchedPins.count == 0 {
                 print("No saved pins")
             } else {
-
+                
                 pins = fetchedPins
                 print("Saved pins found")
                 
-                animatePins = false
-                
                 for pin in pins {
                     addPinToMap(CLLocationCoordinate2D(latitude: Double(pin.latitude!), longitude: Double(pin.longitude!)))
+                    animatePins = false
                 }
-                
-                animatePins = true
             }
         } catch {
             fatalError("Failed to check for saved pin locations: \(error)")
         }
-
-    }
-    
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
-        
-        label.center.y = view.frame.height + (68 / 2)
 
     }
     
@@ -202,6 +205,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     func handleLongPress(recognizer: UILongPressGestureRecognizer) {
         if arePinsEditable == false {
+            
+            animatePins = true
             
             if recognizer.state == .Began {
                 print("Long press began")
