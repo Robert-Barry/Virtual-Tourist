@@ -5,6 +5,9 @@
 //  Created by Robert Barry on 5/25/16.
 //  Copyright © 2016 Robert Barry. All rights reserved.
 //
+// Allows a user to drop pins on a map and click on the pin to see
+// randomly chosen images from the area. Map location and pins are
+// saved in Core Data.
 
 import UIKit
 import MapKit
@@ -23,14 +26,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     var context: NSManagedObjectContext!
     var locationTracker: LocationTracker!
     var isMapData: Bool? // Has the user used the app before?
-    var arePinsEditable = false
+    var arePinsEditable = false // Flag for didSelectAnnotationView
     var label: UILabel!
     var map: MKMapView!
     var selectedAnnotation: MKAnnotation?
     var selectedPin: Pin!
     var animatePins: Bool = true
-    var viewLoadedOnce = true
-    
+    var viewLoadedOnce = true // Did the MapView load 1 time?
     var pins = [Pin]()
     
     
@@ -44,14 +46,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         map.delegate = self
         view.addSubview(map)
         
-        
-        // Create a button to delete pins
-        label = UILabel(frame: CGRectMake(0, 0, view.frame.width, 68))
-        label.center = CGPointMake(view.frame.width - (view.frame.width / 2), view.frame.height - (68 / 2))
-        label.backgroundColor = UIColor.blueColor()
-        label.textColor = UIColor.whiteColor()
-        label.text = "Tap Pins to Delete"
-        label.textAlignment = NSTextAlignment.Center
+        // Make a label that instructs user to delete pins
+        label = createLabelToDeletePins()
         view.addSubview(label)
         
         // The following code is from Stack Overflow URL:
@@ -59,14 +55,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         let lpgr = UILongPressGestureRecognizer(target: self, action: #selector(MapViewController.handleLongPress(_:)))
         lpgr.minimumPressDuration = 0.5
         lpgr.delaysTouchesBegan = true
-        //lpgr.delegate = self
         map.addGestureRecognizer(lpgr)
         
-        // Core Data Stack
+        // initialize the Core Data Stack
         stack = appDelegate.stack
         context = stack.context
 
-        // Create fetch request to get the user's last location data
+        // Create fetch request to get the user's last saved map location data
         let fetchRequest = NSFetchRequest(entityName: "LocationTracker")
         
         do {
@@ -82,11 +77,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                 print("User's previous map location found")
                 isMapData = true // The user has used the app
                 locationTracker = LocationTracker(centerLatitude: fetchedLocation[0].centerLatitude as! Double, centerLongitude: fetchedLocation[0].centerLongitude as! Double, latitudeDelta: fetchedLocation[0].latitudeDelta as! Double, longitudeDelta: fetchedLocation[0].longitudeDelta as! Double, context: stack.context)
-                
-                // Once the Core Data information has been fetched, delete it
-                /*for item in fetchedLocation {
-                 stack.context.deleteObject(item)
-                 }*/
             }
         } catch {
             fatalError("Failed to get previous location: \(error)")
@@ -96,10 +86,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
+        // chage the navigation controller title
         navigationController?.navigationBar.topItem?.title = "Virtual Tourist"
         
+        // set the label to hidden
         label.center.y = view.frame.height + (68 / 2)
         
+        // Remove all the pins from the map to reset pins
         print("Removing all pins")
         pins.removeAll()
         for annotation in map.annotations {
@@ -116,11 +109,13 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             // If no array is returned, move along
             if fetchedPins.count == 0 {
                 print("No saved pins")
+                editButton.enabled = false
             } else {
-                
+                // otherwise retrieve the saved pins
                 pins = fetchedPins
                 print("Saved pins found")
                 
+                // add the saved pins to the map
                 for pin in pins {
                     addPinToMap(CLLocationCoordinate2D(latitude: Double(pin.latitude!), longitude: Double(pin.longitude!)))
                     animatePins = false
@@ -133,8 +128,11 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
     
     override func viewDidAppear(animated: Bool) {
-        // Updates the map AFTER iOS does when the view first loads 
+        // Updates the map AFTER iOS does when the view first loads
+        // Required to override iOS.
         if let mapData = isMapData {
+            // Only set the map location when there is saved data AND
+            // the view is loaded for the first time
             if mapData == true && viewLoadedOnce == true {
                 setMapLocation()
             }
@@ -142,13 +140,15 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     }
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
-        // Send latitude and longitude data to the next view controller
+        // The view was loaded before
         viewLoadedOnce = false
         
+        // Send pin data to the next view controller
         let controller = segue.destinationViewController as! LocationPhotosViewController
         
         controller.pin = selectedPin
         
+        // save the location of the map
         do {
             try stack?.saveContext()
             print("Context saved")
@@ -158,18 +158,28 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
     }
     
+    
+    
+// ACTIONS
     @IBAction func editMap(sender: AnyObject) {
-        print("Can edit pins")
-        if editButton.title == "Edit" {
+        if pins.count > 0 && editButton.title == "Edit" {
             editButton.title = "Done"
             arePinsEditable = true
+            
+            // show the label that instructs the user to click a pin
             UIView.animateWithDuration(0.15, animations: {
                 self.label.center.y = self.view.frame.height - (68 / 2)
                 self.map.center.y -= 68
             })
-        } else {
+        } else if editButton.title == "Done" {
             editButton.title = "Edit"
             arePinsEditable = false
+            
+            if pins.isEmpty {
+                editButton.enabled = false
+            }
+            
+            // hide the label that instructs the user to click a pin
             UIView.animateWithDuration(0.15, animations: {
                 self.label.center.y = self.view.frame.height + (68 / 2)
                 self.map.center.y += 68
@@ -196,9 +206,21 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         return false
     }
     
+    // Creates the label that instructs the user how to delet pins
+    func createLabelToDeletePins() -> UILabel {
+        label = UILabel(frame: CGRectMake(0, 0, view.frame.width, 68))
+        label.center = CGPointMake(view.frame.width - (view.frame.width / 2), view.frame.height - (68 / 2))
+        label.backgroundColor = UIColor.blueColor()
+        label.textColor = UIColor.whiteColor()
+        label.text = "Tap Pins to Delete"
+        label.textAlignment = NSTextAlignment.Center
+        return label
+    }
+    
     // helper function to set the visible map for the user
     func setMapLocation() {
         
+        // Use the location tracker to set the map location
         let center = CLLocationCoordinate2D(latitude: locationTracker.centerLatitude as! CLLocationDegrees, longitude: locationTracker.centerLongitude as! CLLocationDegrees)
         
         // Zoom level
@@ -211,13 +233,14 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     func handleLongPress(recognizer: UILongPressGestureRecognizer) {
         if arePinsEditable == false {
             
-            animatePins = true
+            animatePins = true // animate the new pin being added
             
             if recognizer.state == .Began {
                 print("Long press began")
             }
             
             if recognizer.state == .Ended {
+                editButton.enabled = true
                 let touchPoint = recognizer.locationInView(map)
                 
                 // Coordinates chosen by user
@@ -253,6 +276,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         // Find the selected pin in the pins array
+        print("Pin selected")
         for pin in pins {
             if view.annotation?.coordinate.latitude == pin.latitude && view.annotation?.coordinate.longitude == pin.longitude {
                 // Delete the pins if the user chooses to do so
@@ -262,6 +286,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                     context.deleteObject(pin)
                     mapView.removeAnnotation(view.annotation!)
                 } else {
+                    print("Seque to LocationPhotosViewController")
                     selectedAnnotation = view.annotation
                     selectedPin = pin
                     performSegueWithIdentifier("locationPhotos", sender: self)
@@ -270,7 +295,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
     }
 
-    
+    // Create the annotation view
     func mapView(mapView: MKMapView, viewForAnnotation annotation: MKAnnotation) -> MKAnnotationView? {
             let identifier = "pin"
             var view: MKPinAnnotationView
@@ -281,7 +306,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             } else {
                 view = MKPinAnnotationView(annotation: annotation, reuseIdentifier: identifier)
             }
-            view.animatesDrop = animatePins
+            view.animatesDrop = animatePins // only animate when adding a new pin
             return view
     }
 }

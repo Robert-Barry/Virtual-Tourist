@@ -10,7 +10,7 @@ import UIKit
 import MapKit
 import CoreData
 
-class LocationPhotosViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate, NSFetchedResultsControllerDelegate {
+class LocationPhotosViewController: UIViewController {
     
 // OUTLETS
     @IBOutlet weak var map: MKMapView!
@@ -39,8 +39,7 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     
     var latitude: Double!
     var longitude: Double!
-    
-
+  
     
     
 // OVERRIDES
@@ -80,15 +79,16 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         updateBottomButton()
     }
 
-    
-    // Save the context when going back to the MapViewController
     override func viewWillDisappear(animated: Bool) {
+        // Save the context when going back to the MapViewController
         save()
     }
     
     override func viewWillAppear(animated: Bool) {
         
         print("in viewWillAppear")
+        
+        // Change the navigation controller back button text
         navigationController?.navigationBar.topItem?.title = "OK"
         
         // Reset the URLList
@@ -103,8 +103,9 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         let span = MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2)
         let region = MKCoordinateRegionMake(center, span)
         
+        // Do not allow users to change the map
         map.userInteractionEnabled = false
-        
+        // set the map
         map.setRegion(region, animated: false)
         
         // Add an annotation to the map
@@ -116,135 +117,14 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         // If there are saved images, load them
         if fetchedResultsController.fetchedObjects!.count == 0 {
             print("No saved images. Loading from Flickr")
-            FlickrClient.sharedInstance().isPlaceholder = true
             getImagesFromFlickr(latitude, longitude: longitude)
         // Otherwise load the images from Core Data
         } else {
             print("Saved images. Loading from Core Data")
-            FlickrClient.sharedInstance().isPlaceholder = false
         }
-    }
-    
-    func configureCell(cell: LocationImageViewCell, indexPath: NSIndexPath) {
-        print("in configureCell")
-        
-        let image = fetchedResultsController!.objectAtIndexPath(indexPath) as! Image
-        
-        cell.activityView.activityIndicatorViewStyle = .WhiteLarge
-        cell.activityView.startAnimating()
-        cell.activityView.hidesWhenStopped =  true
-        
-        cell.imageViewCell.image = UIImage(data: image.image!)
-        
-        if image.isPlaceholderImage == false {
-            cell.activityView.stopAnimating()
-        }
-        
-        // If the cell is "selected" it's image is grayed out
-        if let _ = selectedIndexes.indexOf(indexPath) {
-            cell.imageViewCell.alpha = 0.4
-        } else {
-            cell.imageViewCell.alpha = 1.0
-        }
- 
-    }
-    
-    func save() {
-        do {
-            try stack?.saveContext()
-            print("Context saved")
-        } catch {
-            print("Error while saving")
-        }
-    }
-    
-    
-    @IBAction func newCollectionButtonPressed(sender: AnyObject) {
-        print("New Collection button pressed")
-    
-        if selectedIndexes.isEmpty {
-            deleteAllImages()
-            print("Loading new images from Flickr")
-            FlickrClient.sharedInstance().isPlaceholder = true
-            getImagesFromFlickr(latitude, longitude: longitude)
-        } else {
-            deleteSelectedImages()
-        }
-    }
-    
-    func deleteSelectedImages() {
-        var imagesToDelete = [Image]()
-        
-        for indexPath in selectedIndexes {
-            imagesToDelete.append(fetchedResultsController.objectAtIndexPath(indexPath) as! Image)
-        }
-        
-        for image in imagesToDelete {
-            context.deleteObject(image)
-        }
-        
-        selectedIndexes = [NSIndexPath]()
-        updateBottomButton()
-    }
-    
-    func getImagesFromFlickr(latitude: Double, longitude: Double) {
-        print("Getting images from Flickr...")
-        let location = ["lat": latitude, "lon": longitude]
-        FlickrClient.sharedInstance().getImageURLList(location) { success, error in
-            if success {
-                print("Succes loading the URL list")
-                if FlickrClient.sharedInstance().URLList.isEmpty {
-                    self.performUIUpdatesOnMain {
-                        let alert = self.noImagesToDownloadAlert()
-                        self.presentViewController(alert, animated: true, completion: nil)
-                    }
-                }
-                let images = self.createPlaceholders()
-                FlickrClient.sharedInstance().requestImagesFromFlickr(pin: self.pin, latitude: latitude, longitude: longitude, imageObject: images) { success, error in
-                    if success {
-                        print("Image downloaded")
-                        self.save()
-                    } else {
-                        print("Problem loading images")
-                    }
-                }
-            } else {
-                print("error")
-            }
-        }
-    }
-    
-    func deleteAllImages() {
-        for image in fetchedResultsController.fetchedObjects as! [Image] {
-            context.deleteObject(image)
-        }
-    }
-// HELPER FUNCTIONS
-    
-    func noImagesToDownloadAlert() -> UIAlertController {
-        let alert = UIAlertController(title: "No Images!", message: "There were no images found at this location!", preferredStyle: .Alert)
-        let alertAction = UIAlertAction(title: "OK", style: .Default, handler: { action in
-            self.navigationController?.popToRootViewControllerAnimated(true)
-        })
-        alert.addAction(alertAction)
-        return alert
-    }
-    
-    
-    func createPlaceholders() -> [Image] {
-        FlickrClient.sharedInstance().isPlaceholder = true
-        let placeholder = UIImage(named: "placeholder")
-        let placeholderData = UIImageJPEGRepresentation(placeholder!, 1.0)
-        var images = [Image]()
-        for url in FlickrClient.sharedInstance().URLList {
-            images.append(Image(image: placeholderData!, pin: pin, isPlaceholderImage: true, context: context!))
-            print(images.count)
-        }
-        return images
     }
     
     // Layout the collection view
-    
     override func viewDidLayoutSubviews() {
         print("in viewDidLayoutSubviews()")
         super.viewDidLayoutSubviews()
@@ -261,7 +141,177 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         collectionView.collectionViewLayout = layout
     }
     
+
     
+// ACTIONS
+    @IBAction func newCollectionButtonPressed(sender: AnyObject) {
+        print("New Collection button pressed")
+        
+        if selectedIndexes.isEmpty {
+            // delete all the images and reload new ones from Flickr
+            deleteAllImages()
+            print("Loading new images from Flickr")
+            getImagesFromFlickr(latitude, longitude: longitude)
+        } else {
+            // Just delete selected images
+            deleteSelectedImages()
+        }
+    }
+    
+    
+    
+// HELPER FUNCTIONS
+    func configureCell(cell: LocationImageViewCell, indexPath: NSIndexPath) {
+        print("in configureCell")
+        
+        // Grab the Image object from the fetchedResultsController
+        let image = fetchedResultsController!.objectAtIndexPath(indexPath) as! Image
+        
+        // Add an activity indicator and start it
+        cell.activityView.activityIndicatorViewStyle = .WhiteLarge
+        cell.activityView.startAnimating()
+        cell.activityView.hidesWhenStopped =  true
+        
+        // Set the image of the cell's image view
+        cell.imageViewCell.image = UIImage(data: image.image!)
+        
+        // If the image that is loaded is NOT a placeholder image
+        if image.isPlaceholderImage == false {
+            // Stop and hide the activiity view
+            cell.activityView.stopAnimating()
+        }
+        
+        // If the cell is "selected" it's image is grayed out
+        if let _ = selectedIndexes.indexOf(indexPath) {
+            cell.imageViewCell.alpha = 0.4
+        } else {
+            cell.imageViewCell.alpha = 1.0
+        }
+        
+    }
+    
+    // Helper function to shorten how the context is saved
+    func save() {
+        do {
+            try stack?.saveContext()
+            print("Context saved")
+        } catch {
+            print("Error while saving")
+        }
+    }
+    
+    // Delete only the Image objects in the selectedIndexes array from Core Data
+    func deleteSelectedImages() {
+        var imagesToDelete = [Image]()
+        
+        // Loop through each selectedIndex and add the Image object to a new array
+        for indexPath in selectedIndexes {
+            imagesToDelete.append(fetchedResultsController.objectAtIndexPath(indexPath) as! Image)
+        }
+        
+        // Delete the images
+        for image in imagesToDelete {
+            context.deleteObject(image)
+        }
+        
+        // empty the re-initialize the selectedIndexes array to contain no indexes
+        selectedIndexes = [NSIndexPath]()
+        
+        updateBottomButton()
+    }
+    
+    // Load images from Flickr
+    func getImagesFromFlickr(latitude: Double, longitude: Double) {
+        print("Getting images from Flickr...")
+        
+        // Use the latitude and longitude of the recieved pin
+        let location = ["lat": latitude, "lon": longitude]
+        
+        FlickrClient.sharedInstance().getImageURLList(location) { success, error in
+            if success {
+                print("Succes loading the URL list")
+                
+                // If the Flickr request returns no image URLs, show and alert
+                if FlickrClient.sharedInstance().URLList.isEmpty {
+                    self.performUIUpdatesOnMain {
+                        // Create the alert
+                        let alert = self.noImagesToDownloadAlert()
+                        // Present the alert
+                        self.presentViewController(alert, animated: true, completion: nil)
+                    }
+                }
+                
+                // Create an array of Image objects with placeholders as the image property
+                let images = self.createPlaceholders()
+                
+                // Use the returned list of URLs to replace the placeholder images
+                FlickrClient.sharedInstance().requestImagesFromFlickr(pin: self.pin, latitude: latitude, longitude: longitude, imageObject: images) { success, error in
+                    if success {
+                        print("Image downloaded")
+                        // Save the context when the image downloads
+                        self.save()
+                    } else {
+                        print("Problem loading images")
+                    }
+                }
+            } else {
+                print("error")
+            }
+        }
+    }
+    
+    // Delete all the images in the context
+    func deleteAllImages() {
+        for image in fetchedResultsController.fetchedObjects as! [Image] {
+            context.deleteObject(image)
+        }
+    }
+    
+    // Create an alert when no image URLs are downloaded from Flickr
+    func noImagesToDownloadAlert() -> UIAlertController {
+        let alert = UIAlertController(title: "No Images!", message: "There were no images found at this location!", preferredStyle: .Alert)
+        let alertAction = UIAlertAction(title: "OK", style: .Default, handler: { action in
+            // When the user touches the "OK" button, go back to MapViewController
+            self.navigationController?.popToRootViewControllerAnimated(true)
+        })
+        alert.addAction(alertAction)
+        return alert
+    }
+    
+    // Make an array of Image objects with placeholders in the image property
+    func createPlaceholders() -> [Image] {
+        let placeholder = UIImage(named: "placeholder")
+        let placeholderData = UIImageJPEGRepresentation(placeholder!, 1.0)
+        var images = [Image]()
+        
+        // Loop through the list of URLs returned from Flickr
+        for _ in FlickrClient.sharedInstance().URLList {
+            images.append(Image(image: placeholderData!, pin: pin, isPlaceholderImage: true, context: context!))
+        }
+        return images
+    }
+    
+    // Change the text of the bottom button depending on whether images are selected
+    func updateBottomButton() {
+        if selectedIndexes.count > 0 {
+            newCollection.title = "Remove Selected Images"
+        } else {
+            newCollection.title = "New Collection"
+        }
+    }
+    
+    // GCD
+    func performUIUpdatesOnMain(updates: () -> Void) {
+        dispatch_async(dispatch_get_main_queue()) {
+            updates()
+        }
+    }
+}
+
+    
+    
+// MARK:  - Data Source
+extension LocationPhotosViewController: UICollectionViewDataSource {
     func numberOfSectionsInCollectionView(collectionView: UICollectionView) -> Int {
         return self.fetchedResultsController.sections?.count ?? 0
     }
@@ -284,11 +334,16 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         return cell
     }
     
-    func performUIUpdatesOnMain(updates: () -> Void) {
-        dispatch_async(dispatch_get_main_queue()) {
-            updates()
-        }
-    }
+    
+
+}
+
+
+
+// MARK:  - Delegate
+
+extension LocationPhotosViewController: UICollectionViewDelegate {
+    
     
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
         print("in collectionView(_:didSelectItemAtIndexPath)")
@@ -307,34 +362,26 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         // And update the buttom button
         updateBottomButton()
     }
-
 }
 
 
 
-// MARK:  - Delegate
+// MARK: - Fetched Results Controller Delegate
 
-extension LocationPhotosViewController {
+// The following code is mostly from Udacity's Color Collection app
+extension LocationPhotosViewController:  NSFetchedResultsControllerDelegate {
     
-    
-    // MARK: - Fetched Results Controller Delegate
-    
-    // Whenever changes are made to Core Data the following three methods are invoked. This first method is used to create
-    // three fresh arrays to record the index paths that will be changed.
+    // Whenever changes are made to Core Data the following three methods are invoked.
     func controllerWillChangeContent(controller: NSFetchedResultsController) {
         
-        // We are about to handle some new changes. Start out with empty arrays for each change type
+        // Start out with empty arrays for each change type
         insertedIndexPaths = [NSIndexPath]()
         deletedIndexPaths = [NSIndexPath]()
         updatedIndexPaths = [NSIndexPath]()
         
         print("in controllerWillChangeContent")
     }
-    
-    // The second method may be called multiple times, once for each Color object that is added, deleted, or changed.
-    // We store the incex paths into the three arrays.
-    
-    
+
     func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
         switch type {
             
@@ -347,10 +394,6 @@ extension LocationPhotosViewController {
             break
         case .Update:
             print("Update an item.")
-            // We don't expect Color instances to change after they are created. But Core Data would
-            // notify us of changes if any occured. This can be useful if you want to respond to changes
-            // that come about after data is downloaded. For example, when an images is downloaded from
-            // Flickr in the Virtual Tourist app
             updatedIndexPaths.append(indexPath!)
             break
         case .Move:
@@ -361,10 +404,6 @@ extension LocationPhotosViewController {
         }
     }
     
-    
-    
-    // The most interesting thing about the method is the collection view's "performBatchUpdates" method.
-    // Notice that all of the changes are performed inside a closure that is handed to the collection view.
     func controllerDidChangeContent(controller: NSFetchedResultsController) {
         
         print("in controllerDidChangeContent. changes.count: \(insertedIndexPaths.count + deletedIndexPaths.count)")
@@ -384,13 +423,5 @@ extension LocationPhotosViewController {
             }
             
             }, completion: nil)
-    }
-    
-    func updateBottomButton() {
-        if selectedIndexes.count > 0 {
-            newCollection.title = "Remove Selected Images"
-        } else {
-            newCollection.title = "New Collection"
-        }
     }
 }

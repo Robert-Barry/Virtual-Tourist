@@ -16,8 +16,8 @@ extension FlickrClient {
         static let path = "/services/rest/"
         static let https = "https"
         
-        static let searchBboxHalfWidth = 0.5
-        static let searchBboxHalfHeight = 0.5
+        static let searchBboxHalfWidth = 0.25
+        static let searchBboxHalfHeight = 0.25
         static let searchLatRange = (-90.0, 90.0)
         static let searchLonRange = (-180.0, 180.0)
         
