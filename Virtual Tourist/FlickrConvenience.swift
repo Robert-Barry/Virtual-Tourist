@@ -2,161 +2,156 @@
 //  FlickrConvenience.swift
 //  Virtual Tourist
 //
-//  Created by Robert Barry on 7/6/16.
+//  Created by Robert Barry on 6/27/16.
 //  Copyright © 2016 Robert Barry. All rights reserved.
 //
 
 import Foundation
+import UIKit
+import CoreData
 
-class FlickrClient {
+extension FlickrClient {
     
-    // variable
-    var URLList = [NSURL]()
-    
-    // shared session
-    var session = NSURLSession.sharedSession()
-    
-    // MARK: Reusable Get function
-    func taskForGETMethod(parameters: [String: AnyObject], completionHandlerForGET: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
-        
-        print("Task for GET method called")
-        
-        // Build the request
-        let request = buildRequest(parameters: parameters)
-        
-        // Build the task
-        let task = buildTask(request: request, completionHandler: completionHandlerForGET)
-        
-        task.resume()
-        
-        return task
-        
-    }
-    
-    func taskForGETImage(url: NSURL, completionHandlerForImage: (imageData: NSData?, error: NSError?) -> Void) -> NSURLSessionTask {
-        /* Build the URL and configure the request */
-        let request = NSURLRequest(URL: url)
-        
-        /* Make the request */
-        let task = session.dataTaskWithRequest(request) { (data, response, error) in
+    // Get a list of URLs to a random page of images on Flickr
+    func getImageURLList(location: [String:Double], completionHandlerForRequest: (success: Bool, errorString: String?) -> Void) {
+        // Make a request for images from Flickr
+        getPages(location) { success, data, errorString in
+            // Get the number of pages returned
+            let numberOfPages = self.getNumberOfPages(data)
             
-            func sendError(error: String) {
-                print(error)
-                let userInfo = [NSLocalizedDescriptionKey : error]
-                completionHandlerForImage(imageData: nil, error: NSError(domain: "taskForGETMethod", code: 1, userInfo: userInfo))
+            // Pick a random page
+            let pageLimit = min(numberOfPages, 4000 / Int(FlickrClient.Contstants.FlickrParameterValues.per_page)!)
+            let randomPage = String(Int(arc4random_uniform(UInt32(pageLimit))) + 1)
+            
+            // Get a list of URLs to images
+            self.getListOfImageURLs(location, randomPage: randomPage) { (success, imageList, errorString) in
+                
+                if success {
+                    // Add the URLs to the URLList property
+                    self.URLList = self.getListOfURLs(imageList)
+                    print("Request complete")
+                    
+                    completionHandlerForRequest(success: true, errorString: nil)
+                    
+                } else {
+                    completionHandlerForRequest(success: false, errorString: "Could not retrieve the image URLs")
+                }
             }
-            
-            /* GUARD: Was there an error? */
-            guard (error == nil) else {
-                sendError("There was an error with your request: \(error)")
-                return
-            }
-            
-            /* GUARD: Did we get a successful 2XX response? */
-            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
-                sendError("Your request returned a status code other than 2xx!")
-                return
-            }
-            
-            /* GUARD: Was there any data returned? */
-            guard let data = data else {
-                sendError("No data was returned by the request!")
-                return
-            }
-            
-            /* Parse the data and use the data (happens in completion handler) */
-            completionHandlerForImage(imageData: data, error: nil)
         }
-        
-        /* Start the request */
-        task.resume()
-        
-        return task
+    }
+ 
+    // Request the images using the URLList property
+    func requestImagesFromFlickr(pin pin: Pin, latitude: Double, longitude: Double, imageObject: [Image], completionHandlerForRequest: (success: Bool, errorString: String?) -> Void) {
+        var i = 0 // track the index of the URLList
+        // Get an image for each URL in the URLList
+        for url in self.URLList {
+            self.taskForGETImage(url) { imageData, error in
+                if let image = imageData {
+                    // assign an Image object to the array of Image objects
+                    imageObject[i].image = image
+                    // this image is not a placeholder
+                    imageObject[i].isPlaceholderImage = false
+                    i = i + 1
+                    completionHandlerForRequest(success: true, errorString: nil)
+                } else {
+                    completionHandlerForRequest(success: false, errorString: "There was an error loading an image")
+                }
+            }
+        }
     }
     
-    // MARK: Helper functions
+    // Make the first request to Flickr for the basic information
+    func getPages(location: [String:Double], completeionHandlerForPageNumber: (success: Bool, data: AnyObject, errorString: String?) -> Void) {
+        
+        // Getting a random page number from Flickr
+        let parameters = getParameters(location)
+        
+        taskForGETMethod(parameters) { results, error in
+            completeionHandlerForPageNumber(success: true, data: results, errorString: nil)
+        }
+    }
     
-    func buildRequest(parameters parameters: [String:AnyObject]) -> NSMutableURLRequest {
+    // Get a list of Image URLs
+    func getListOfImageURLs(location: [String:Double], randomPage: String, completionHandlerForImageList: (success: Bool, imageList: AnyObject, errorString: String?) -> Void) {
         
-        print("Building the request...")
+        var parameters = getParameters(location)
+        parameters["page"] = randomPage
         
-        // Create a request
-        var request: NSMutableURLRequest
+        taskForGETMethod(parameters) { results, error in
+            completionHandlerForImageList(success: true, imageList: results, errorString: nil)
+        }
+    }
+    
+    // Create the parameters used in the URL of the request to Flickr
+    private func getParameters(location: [String:Double]) -> [String: String] {
+        return [
+            FlickrClient.Contstants.FlickrParameterKeys.method: FlickrClient.Contstants.FlickrParameterValues.method,
+            FlickrClient.Contstants.FlickrParameterKeys.api_key: FlickrClient.Contstants.FlickrParameterValues.api_key,
+            FlickrClient.Contstants.FlickrParameterKeys.lat: String(location["lat"]!),
+            FlickrClient.Contstants.FlickrParameterKeys.lon: String(location["lon"]!),
+            FlickrClient.Contstants.FlickrParameterKeys.extras: FlickrClient.Contstants.FlickrParameterValues.extras,
+            FlickrClient.Contstants.FlickrParameterKeys.format: FlickrClient.Contstants.FlickrParameterValues.format,
+            FlickrClient.Contstants.FlickrParameterKeys.nojsoncallback: FlickrClient.Contstants.FlickrParameterValues.nojsoncallback,
+            FlickrClient.Contstants.FlickrParameterKeys.bbox: bboxString(location["lat"]!, lon: location["lon"]!),
+            FlickrClient.Contstants.FlickrParameterKeys.per_page:FlickrClient.Contstants.FlickrParameterValues.per_page
+        ]
+    }
+    
+    // Create a bounding box
+    private func bboxString(lat: Double, lon: Double) -> String {
+        let latitude = lat
+        let longitude = lon
+        
+        let minimumLon = max(longitude - FlickrClient.Contstants.searchBboxHalfWidth, FlickrClient.Contstants.searchLonRange.0)
+        let minimumLat = max(latitude - FlickrClient.Contstants.searchBboxHalfHeight, FlickrClient.Contstants.searchLatRange.0)
+        let maximumLon = min(longitude + FlickrClient.Contstants.searchBboxHalfWidth, FlickrClient.Contstants.searchLonRange.1)
+        let maximumLat = min(latitude + FlickrClient.Contstants.searchBboxHalfHeight, FlickrClient.Contstants.searchLatRange.1)
 
-        request = NSMutableURLRequest(URL: URLFromParameters(FlickrClient.Contstants.https, apiHost: FlickrClient.Contstants.host, apiPath: FlickrClient.Contstants.path, parameters: parameters, withPathExtension: ""))
-        
-        return request
-        
+        return "\(minimumLon),\(minimumLat),\(maximumLon),\(maximumLat)"
     }
     
-    func buildTask(request request: NSMutableURLRequest, completionHandler: (result: AnyObject!, error: NSError?) -> Void) -> NSURLSessionDataTask {
+    // Assign the URLs to a URLList
+    private func getListOfURLs(data: AnyObject) -> [NSURL] {
         
-        print("Building the task...")
+        var URLList = [NSURL]()
         
-        // Create a task
-        let task = session.dataTaskWithRequest(request) { (data, response, error) in
-            
-            func sendError(error: String) {
-                print(error)
+        if let imageItems = data as? [String: AnyObject] {
+            if let FlickrPhotos = imageItems["photos"] as? [String: AnyObject] {
+                if let imageData = FlickrPhotos["photo"] as? [[String: AnyObject]] {
+                    for image in imageData {
+                        if let imageUrl = image["url_m"] {
+                            let urlString = String(imageUrl)
+                            URLList.append(NSURL(string: urlString)!)
+                        }
+                    }
+                }
+            } else {
+                print("There are no photos to display")
             }
-            
-            // Guard statements to check check that the data is valid
-            
-            // GUARD: Was there an error?
-            guard (error == nil) else {
-                sendError("There was an error with your request: \(error)")
-                return
-            }
-            
-            // GUARD: Did we get a successfull 2xx response?
-            guard let statusCode = (response as? NSHTTPURLResponse)?.statusCode where statusCode >= 200 && statusCode <= 299 else {
-                sendError("Your request returned a status code other than 2xx: \((response as? NSHTTPURLResponse)?.statusCode))")
-                return
-            }
-            
-            // GUARD: Was the data returned
-            guard let data = data else {
-                sendError("No data was returned by the request!")
-                return
-            }
-            // Convert the data to json
-            self.convertDataWithCompletionHandler(data: data, completionHandlerForConvertData: completionHandler)
+
+        } else {
+            print("Cannot convert JSON: \(data)")
         }
-        
-        return task
-        
+
+        return URLList
     }
     
-    // Creates a URL for use in a request
-    func URLFromParameters(apiScheme: String, apiHost: String, apiPath: String, parameters: [String:AnyObject], withPathExtension: String? = nil) -> NSURL {
+    // Get the number of pages available from FLickr
+    private func getNumberOfPages(json: AnyObject) -> Int {
         
-        let components = NSURLComponents()
-        components.scheme = apiScheme
-        components.host = apiHost
-        components.path = apiPath + (withPathExtension ?? "")
-        components.queryItems = [NSURLQueryItem]()
-        
-        for (key, value) in parameters {
-            let queryItem = NSURLQueryItem(name: key, value: "\(value)")
-            components.queryItems!.append(queryItem)
+        if let photos = json["photos"] as? [String: AnyObject] {
+            if let pages = photos["pages"] {
+                return Int(pages as! NSNumber)
+            }
         }
-        
-        return components.URL!
+        return 0
     }
     
-    // given raw JSON, return a usable Foundation object
-    private func convertDataWithCompletionHandler(data data: NSData, completionHandlerForConvertData: (result: AnyObject!, error: NSError?) -> Void) {
-        
-        print("Converting data to json...")
-        
-        var parsedResult: AnyObject!
-        do {
-            parsedResult = try NSJSONSerialization.JSONObjectWithData(data, options: .AllowFragments)
-        } catch {
-            let userInfo = [NSLocalizedDescriptionKey : "Could not parse the data as JSON: '\(data)'"]
-            completionHandlerForConvertData(result: nil, error: NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
+    // Create a singleton
+    class func sharedInstance() -> FlickrClient {
+        struct Singleton {
+            static var sharedInstance = FlickrClient()
         }
-        
-        completionHandlerForConvertData(result: parsedResult, error: nil)
+        return Singleton.sharedInstance
     }
 }
