@@ -29,6 +29,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     var selectedAnnotation: MKAnnotation?
     var selectedPin: Pin!
     var animatePins: Bool = true
+    var viewLoadedOnce = true
     
     var pins = [Pin]()
     
@@ -95,6 +96,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         
+        navigationController?.navigationBar.topItem?.title = "Virtual Tourist"
+        
         label.center.y = view.frame.height + (68 / 2)
         
         print("Removing all pins")
@@ -132,7 +135,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     override func viewDidAppear(animated: Bool) {
         // Updates the map AFTER iOS does when the view first loads 
         if let mapData = isMapData {
-            if mapData {
+            if mapData == true && viewLoadedOnce == true {
                 setMapLocation()
             }
         }
@@ -140,6 +143,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     override func prepareForSegue(segue: UIStoryboardSegue, sender: AnyObject?) {
         // Send latitude and longitude data to the next view controller
+        viewLoadedOnce = false
+        
         let controller = segue.destinationViewController as! LocationPhotosViewController
         
         controller.pin = selectedPin

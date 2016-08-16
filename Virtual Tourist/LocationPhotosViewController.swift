@@ -89,6 +89,7 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
     override func viewWillAppear(animated: Bool) {
         
         print("in viewWillAppear")
+        navigationController?.navigationBar.topItem?.title = "OK"
         
         // Reset the URLList
         FlickrClient.sharedInstance().URLList.removeAll()
@@ -192,6 +193,12 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         FlickrClient.sharedInstance().getImageURLList(location) { success, error in
             if success {
                 print("Succes loading the URL list")
+                if FlickrClient.sharedInstance().URLList.isEmpty {
+                    self.performUIUpdatesOnMain {
+                        let alert = self.noImagesToDownloadAlert()
+                        self.presentViewController(alert, animated: true, completion: nil)
+                    }
+                }
                 let images = self.createPlaceholders()
                 FlickrClient.sharedInstance().requestImagesFromFlickr(pin: self.pin, latitude: latitude, longitude: longitude, imageObject: images) { success, error in
                     if success {
@@ -213,6 +220,15 @@ class LocationPhotosViewController: UIViewController, UICollectionViewDataSource
         }
     }
 // HELPER FUNCTIONS
+    
+    func noImagesToDownloadAlert() -> UIAlertController {
+        let alert = UIAlertController(title: "No Images!", message: "There were no images found at this location!", preferredStyle: .Alert)
+        let alertAction = UIAlertAction(title: "OK", style: .Default, handler: { action in
+            self.navigationController?.popToRootViewControllerAnimated(true)
+        })
+        alert.addAction(alertAction)
+        return alert
+    }
     
     
     func createPlaceholders() -> [Image] {

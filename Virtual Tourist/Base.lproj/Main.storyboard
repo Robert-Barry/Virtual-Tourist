@@ -149,14 +149,14 @@
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstItem="eYn-80-0od" firstAttribute="leading" secondItem="RrJ-rq-Chc" secondAttribute="leadingMargin" constant="-20" id="3MW-W1-o8e"/>
-                            <constraint firstItem="Vtc-8k-Bk6" firstAttribute="top" secondItem="bW7-gP-VK7" secondAttribute="bottom" id="3tv-YZ-s3D"/>
                             <constraint firstAttribute="trailingMargin" secondItem="eYn-80-0od" secondAttribute="trailing" constant="-20" id="7AP-4W-QiW"/>
                             <constraint firstItem="Fr6-OC-7K3" firstAttribute="top" secondItem="eYn-80-0od" secondAttribute="bottom" id="Eoo-QB-ER0"/>
                             <constraint firstItem="bW7-gP-VK7" firstAttribute="leading" secondItem="RrJ-rq-Chc" secondAttribute="leadingMargin" constant="-20" id="Ojr-Pu-jXd"/>
-                            <constraint firstItem="eYn-80-0od" firstAttribute="top" secondItem="RXN-og-Lqa" secondAttribute="bottom" id="WwM-YQ-IcL"/>
                             <constraint firstAttribute="trailingMargin" secondItem="Fr6-OC-7K3" secondAttribute="trailing" constant="-20" id="gGA-Fr-hfy"/>
                             <constraint firstAttribute="trailingMargin" secondItem="bW7-gP-VK7" secondAttribute="trailing" constant="-20" id="gvz-Xl-UsR"/>
                             <constraint firstItem="Fr6-OC-7K3" firstAttribute="top" secondItem="eYn-80-0od" secondAttribute="bottom" id="hNb-d6-nt0"/>
+                            <constraint firstItem="Vtc-8k-Bk6" firstAttribute="top" secondItem="bW7-gP-VK7" secondAttribute="bottom" id="lBH-IV-Udw"/>
+                            <constraint firstItem="eYn-80-0od" firstAttribute="top" secondItem="RXN-og-Lqa" secondAttribute="bottom" id="mhJ-PQ-4A3"/>
                             <constraint firstItem="Fr6-OC-7K3" firstAttribute="leading" secondItem="RrJ-rq-Chc" secondAttribute="leadingMargin" constant="-20" id="uKG-ZV-2ZP"/>
                             <constraint firstItem="bW7-gP-VK7" firstAttribute="top" secondItem="Fr6-OC-7K3" secondAttribute="bottom" id="zdQ-We-YSM"/>
                         </constraints>
@@ -167,17 +167,15 @@
                                 <exclude reference="Fr6-OC-7K3"/>
                             </mask>
                             <mask key="constraints">
-                                <exclude reference="3tv-YZ-s3D"/>
-                                <exclude reference="Ojr-Pu-jXd"/>
-                                <exclude reference="gvz-Xl-UsR"/>
-                                <exclude reference="zdQ-We-YSM"/>
+                                <exclude reference="3MW-W1-o8e"/>
+                                <exclude reference="7AP-4W-QiW"/>
                                 <exclude reference="Eoo-QB-ER0"/>
                                 <exclude reference="gGA-Fr-hfy"/>
                                 <exclude reference="hNb-d6-nt0"/>
                                 <exclude reference="uKG-ZV-2ZP"/>
-                                <exclude reference="3MW-W1-o8e"/>
-                                <exclude reference="7AP-4W-QiW"/>
-                                <exclude reference="WwM-YQ-IcL"/>
+                                <exclude reference="Ojr-Pu-jXd"/>
+                                <exclude reference="gvz-Xl-UsR"/>
+                                <exclude reference="zdQ-We-YSM"/>
                             </mask>
                         </variation>
                         <variation key="widthClass=compact">
@@ -187,17 +185,15 @@
                                 <include reference="Fr6-OC-7K3"/>
                             </mask>
                             <mask key="constraints">
-                                <include reference="3tv-YZ-s3D"/>
-                                <include reference="Ojr-Pu-jXd"/>
-                                <include reference="gvz-Xl-UsR"/>
-                                <include reference="zdQ-We-YSM"/>
+                                <include reference="3MW-W1-o8e"/>
+                                <include reference="7AP-4W-QiW"/>
                                 <include reference="Eoo-QB-ER0"/>
                                 <include reference="gGA-Fr-hfy"/>
                                 <include reference="hNb-d6-nt0"/>
                                 <include reference="uKG-ZV-2ZP"/>
-                                <include reference="3MW-W1-o8e"/>
-                                <include reference="7AP-4W-QiW"/>
-                                <include reference="WwM-YQ-IcL"/>
+                                <include reference="Ojr-Pu-jXd"/>
+                                <include reference="gvz-Xl-UsR"/>
+                                <include reference="zdQ-We-YSM"/>
                             </mask>
                         </variation>
                     </view>
