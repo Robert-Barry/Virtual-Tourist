@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3134F86C1D5D454100233BD8 /* CoreDataCollectionViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3134F86B1D5D454100233BD8 /* CoreDataCollectionViewController.swift */; };
 		31442FA61D10C7520064DA11 /* Model.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 31442FA41D10C7520064DA11 /* Model.xcdatamodeld */; };
 		31442FA81D10CB480064DA11 /* CoreDataStack.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31442FA71D10CB480064DA11 /* CoreDataStack.swift */; };
 		31442FAD1D11A49C0064DA11 /* LocationTracker+CoreDataProperties.swift in Sources */ = {isa = PBXBuildFile; fileRef = 31442FAB1D11A49C0064DA11 /* LocationTracker+CoreDataProperties.swift */; };
@@ -49,7 +48,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		3134F86B1D5D454100233BD8 /* CoreDataCollectionViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataCollectionViewController.swift; sourceTree = "<group>"; };
 		31442FA51D10C7520064DA11 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		31442FA71D10CB480064DA11 /* CoreDataStack.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CoreDataStack.swift; sourceTree = "<group>"; };
 		31442FAB1D11A49C0064DA11 /* LocationTracker+CoreDataProperties.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; name = "LocationTracker+CoreDataProperties.swift"; path = "../LocationTracker+CoreDataProperties.swift"; sourceTree = "<group>"; };
@@ -197,7 +195,6 @@
 				31442FED1D1C29FA0064DA11 /* LocationPhotosViewController.swift */,
 				31442FF81D2C410F0064DA11 /* LocationImageViewCell.swift */,
 				315F157A1CF5F36700127D54 /* MapViewController.swift */,
-				3134F86B1D5D454100233BD8 /* CoreDataCollectionViewController.swift */,
 			);
 			name = Controllers;
 			sourceTree = "<group>";
@@ -342,7 +339,6 @@
 				315F15A81CF61AC500127D54 /* Defaults.swift in Sources */,
 				31442FF91D2C410F0064DA11 /* LocationImageViewCell.swift in Sources */,
 				31442FEE1D1C29FA0064DA11 /* LocationPhotosViewController.swift in Sources */,
-				3134F86C1D5D454100233BD8 /* CoreDataCollectionViewController.swift in Sources */,
 				3180173E1D620A35004DC749 /* Image+CoreDataProperties.swift in Sources */,
 				31442FAE1D11A49C0064DA11 /* LocationTracker.swift in Sources */,
 				314627A31D50F4A50060D25B /* Pin.swift in Sources */,
