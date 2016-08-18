@@ -14,19 +14,10 @@ class Image: NSManagedObject {
 
     convenience init(image: NSData, pin: Pin, isPlaceholderImage: Bool, context: NSManagedObjectContext) {
         if let entity = NSEntityDescription.entityForName("Image", inManagedObjectContext: context) {
-            self.init(entity: entity, insertIntoManagedObjectContext: context)
-            self.image = image
-            self.pin = pin
-            self.isPlaceholderImage = isPlaceholderImage
-        } else {
-            fatalError("Unable to find entity named Image")
-        }
-    }
-    
-    convenience init(pin: Pin, context: NSManagedObjectContext) {
-        if let entity = NSEntityDescription.entityForName("Image", inManagedObjectContext: context) {
-            self.init(entity: entity, insertIntoManagedObjectContext: context)
-            self.pin = pin
+                self.init(entity: entity, insertIntoManagedObjectContext: context)
+                self.image = image
+                self.pin = pin
+                self.isPlaceholderImage = isPlaceholderImage
         } else {
             fatalError("Unable to find entity named Image")
         }
