@@ -265,6 +265,7 @@ class LocationPhotosViewController: UIViewController {
         for image in fetchedResultsController.fetchedObjects as! [Image] {
             context.deleteObject(image)
         }
+        save() // Save the context
     }
     
     // Create an alert when no image URLs are downloaded from Flickr
